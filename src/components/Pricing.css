@@ -1,0 +1,111 @@
+.pricing-container {
+    text-align: center;
+    padding: 3rem 1rem;
+    background: linear-gradient(to bottom right, #ffe4f1, #f5f5ff);
+    min-height: 100vh;
+  }
+  
+  .pricing-title {
+    font-size: 3rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    color: #111;
+  }
+  
+  .currency-switch {
+    background: linear-gradient(to right, #c471f5, #fa71cd);
+    display: inline-block;
+    padding: 0.5rem 1.5rem;
+    border-radius: 10px;
+    color: white;
+    font-weight: bold;
+    margin-bottom: 2rem;
+    cursor: pointer;
+  }
+  
+  .pricing-cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    justify-content: center;
+  }
+  
+  .pricing-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 20px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    width: 300px;
+    position: relative;
+    text-align: left;
+    transition: transform 0.3s ease;
+  }
+  
+  .pricing-card:hover {
+    transform: translateY(-5px);
+  }
+  
+  .card-header h2 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .discount-tag {
+    font-size: 0.75rem;
+    background-color: #d2e0ff;
+    color: #4a6cf7;
+    padding: 0.25rem 0.5rem;
+    border-radius: 5px;
+    margin-left: 10px;
+  }
+  
+  .badge-tag {
+    font-size: 0.75rem;
+    background-color: gold;
+    color: #111;
+    padding: 0.25rem 0.5rem;
+    border-radius: 5px;
+    margin-left: 10px;
+  }
+  
+  .plan-desc {
+    color: #555;
+    margin-bottom: 1rem;
+  }
+  
+  .plan-price {
+    font-size: 2rem;
+    color: #111;
+    margin-bottom: 0.5rem;
+  }
+  
+  .subtext {
+    font-size: 0.9rem;
+    color: #777;
+    margin-bottom: 1rem;
+  }
+  
+  .upgrade-btn {
+    background: linear-gradient(to right, #c471f5, #fa71cd);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    margin-bottom: 1rem;
+    width: 100%;
+  }
+  
+  .features-list {
+    list-style: none;
+    padding: 0;
+    color: #333;
+  }
+  
+  .features-list li {
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+  }
+  

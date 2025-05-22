@@ -1,0 +1,94 @@
+.profile-dropdown {
+  position: absolute;
+  top: 70px;
+  right: 10px;
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 1rem;
+  width: 260px;
+  max-width: 90vw;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  z-index: 999;
+  animation: fadeIn 0.3s ease;
+}
+
+.profile-dropdown h3 {
+  font-size: 1.2rem;
+  margin-bottom: 12px;
+  color: #333;
+}
+
+.profile-dropdown input {
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 0.95rem;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.profile-dropdown input:focus {
+  border-color: #805ad5;
+  outline: none;
+}
+
+.profile-dropdown button {
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 10px;
+  background-color: #805ad5;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.profile-dropdown button:hover {
+  background-color: #6b46c1;
+}
+
+.profile-dropdown hr {
+  border: none;
+  border-top: 1px solid #eaeaea;
+}
+
+.logout-button {
+  background-color: #e53e3e;
+}
+
+.logout-button:hover {
+  background-color: #c53030;
+}
+
+.mywork-button {
+  background-color: #3182ce;
+}
+
+.mywork-button:hover {
+  background-color: #2563eb;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Optional: Make it stack nicely on small screens */
+@media (max-width: 480px) {
+  .profile-dropdown {
+    right: 5px;
+    left: 5px;
+    width: auto;
+  }
+}

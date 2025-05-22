@@ -1,0 +1,145 @@
+/* Navbar Styles */
+.navbar {
+  background: #ffffff;
+  padding: 10px 0; /* Reduced padding */
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  position: sticky;
+  top: 0;
+  z-index: 999;
+}
+
+/* Container */
+.container {
+  width: 100%;
+  max-width: 1200px; /* Slightly larger for better spacing */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px; /* Side padding only */
+}
+
+/* Logo */
+.nav-logo {
+  font-size: 22px;
+  font-weight: bold;
+  color: #333;
+}
+
+.nav-logo a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Button Area */
+.nav-buttons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Sign-in Button */
+.btn-light {
+  background: transparent;
+  border: none;
+  color: #333;
+  font-size: 15px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+/* Sign-up Button */
+.btn-primary {
+  background: #805ad5;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  color: white;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.btn-primary:hover {
+  background: #6b46c1;
+}
+
+/* User Profile Styles */
+.user-info {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 6px 12px;
+  border-radius: 20px;
+  transition: background-color 0.2s;
+}
+
+.user-info:hover {
+  background-color: #f3f3f3;
+}
+
+/* Username Text */
+.user-name {
+  font-weight: 500;
+  color: #333;
+  font-size: 14px;
+}
+
+/* Profile Dropdown */
+.profile-dropdown-wrapper {
+  position: absolute;
+  top: 56px; /* Adjusted to match smaller navbar */
+  right: 16px;
+  background: white;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  padding: 0.5rem 0;
+  width: 160px;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+/* Dropdown Item */
+.dropdown-item {
+  padding: 10px 16px;
+  text-align: left;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+}
+
+.dropdown-item:hover {
+  background-color: #f0f0f0;
+}
+
+.dropdown-item.logout {
+  color: red;
+}
+
+/* Fade Animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 20px;
+  }
+
+  .nav-buttons {
+    margin-top: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+

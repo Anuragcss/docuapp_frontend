@@ -1,0 +1,160 @@
+/* Global Styles */
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f0f4f8;
+  color: #333;
+}
+
+.container {
+  display: flex;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 240px;
+  background: linear-gradient(135deg, #002244, #003366);
+  color: #ffffff;
+  padding: 2rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.logo {
+  font-size: 1.8rem;
+  font-weight: bold;
+  margin-bottom: 2.5rem;
+  text-align: center;
+  width: 100%;
+  color: #a5c8ff;
+}
+
+/* Navigation Menu */
+.nav {
+  width: 100%;
+}
+
+.nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+}
+
+.nav li {
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.5rem;
+  border-radius: 6px;
+  transition: background-color 0.3s, color 0.3s;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.nav li:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+  color: #c3e0ff;
+}
+
+/* Main Wrapper */
+.wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
+}
+
+/* Header */
+.header {
+  background: #0066cc;
+  color: white;
+  padding: 1.2rem 2rem;
+  font-size: 1.6rem;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0, 102, 204, 0.2);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+/* Main Content */
+.content {
+  flex: 1;
+  padding: 2rem;
+  background-color: #f9fbfc;
+  overflow-y: auto;
+}
+
+/* Form Groups */
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1.5rem;
+}
+
+.formGroup label {
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.formGroup input,
+.formGroup select {
+  padding: 0.6rem 0.75rem;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  transition: border 0.3s ease;
+}
+
+.formGroup input:focus,
+.formGroup select:focus {
+  border-color: #007bff;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+}
+
+/* Footer */
+.footer {
+  background-color: #222;
+  color: #bbb;
+  padding: 1rem;
+  text-align: center;
+  font-size: 0.95rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    padding: 1rem;
+  }
+
+  .nav ul {
+    display: flex;
+    gap: 10px;
+  }
+
+  .nav li {
+    margin: 0;
+  }
+
+  .wrapper {
+    padding: 0;
+  }
+
+  .header {
+    font-size: 1.3rem;
+    text-align: center;
+  }
+}

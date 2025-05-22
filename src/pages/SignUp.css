@@ -1,0 +1,190 @@
+/* General Page Styling */
+body {
+    font-family: "Poppins", sans-serif;
+    background: white;
+    margin: 0;
+    padding: 0;
+}
+
+/* Main Container */
+.signup-container {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; /* Align to the left */
+    height: 100vh;
+    width: 100%;
+    background: linear-gradient(to right, #8360c3, #2ebf91);
+    padding: 20px 40px; /* Add horizontal padding */
+}
+
+/* Left Section (Form) */
+.signup-left {
+    background: white;
+    padding: 40px;
+    border-radius: 8px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    width: 350px;
+    text-align: center;
+}
+
+/* Heading and Text */
+.signup-left h2 {
+    font-size: 22px;
+    font-weight: 600;
+}
+
+.signup-left p {
+    color: #666;
+    font-size: 14px;
+}
+
+/* Google Signup Button */
+.google-signup {
+    width: 100%;
+    padding: 12px;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.google-signup svg {
+    font-size: 20px;
+    color: #8360c3;
+}
+
+/* LinkedIn Signup Button */
+.linkedin-signup {
+    width: 100%;
+    padding: 12px;
+    background: #0077b5;
+    border: none;
+    border-radius: 4px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.linkedin-signup svg {
+    font-size: 20px;
+    color: white;
+}
+
+.linkedin-signup:hover {
+    background: #005983;
+}
+
+/* Divider */
+.or {
+    margin: 15px 0;
+    font-size: 14px;
+    color: #999;
+}
+
+/* Input Fields */
+input[type="email"],
+input[type="password"] {
+    width: 100%;
+    padding: 12px;
+    margin: 12px 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+/* Terms & Conditions */
+.terms {
+    font-size: 12px;
+    text-align: left;
+    margin: 12px 0;
+    display: flex;
+    align-items: center;
+}
+
+.terms input {
+    margin-right: 8px;
+}
+
+/* Continue Button */
+.continue-btn {
+    width: 100%;
+    padding: 12px;
+    background: #8360c3;
+    color: white;
+    font-weight: bold;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.continue-btn:hover {
+    background: #6b50a0;
+}
+
+/* Right Section (Info) */
+.signup-right {
+    color: white;
+    max-width: 450px;
+    text-align: left;
+    padding: 30px;
+    margin-left: 50px;
+}
+
+/* Title Styling */
+.signup-right h2 {
+    font-size: 30px;
+    margin-bottom: 20px;
+    font-weight: 700;
+}
+
+/* List Styling */
+.signup-right ul {
+    list-style: none;
+    padding: 0;
+}
+
+.signup-right li {
+    font-size: 18px;
+    margin: 15px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .signup-container {
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: center;
+        padding: 20px;
+    }
+
+    .signup-left {
+        margin-right: 0;
+        width: 100%;
+    }
+
+    .signup-right {
+        text-align: center;
+        max-width: 100%;
+        margin-left: 0;
+        margin-top: 20px;
+    }
+
+    .signup-right ul {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+}

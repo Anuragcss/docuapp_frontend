@@ -1,0 +1,42 @@
+.mywork-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: calc(100vh - 80px); /* Adjust height if Navbar exists */
+    background: #f9fafb;
+    padding: 2rem;
+  }
+  
+  .mywork-card {
+    text-align: center;
+    padding: 2rem 3rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    max-width: 500px;
+    width: 100%;
+    animation: fadeIn 0.4s ease-in-out;
+  }
+  
+  .mywork-card h2 {
+    color: #333;
+    margin-bottom: 1rem;
+  }
+  
+  .mywork-card p {
+    color: #555;
+    line-height: 1.6;
+    font-size: 15px;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  

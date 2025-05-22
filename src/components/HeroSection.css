@@ -1,0 +1,211 @@
+@import url('[https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap](https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap)');
+
+.hero-section {
+  /* Using a height that allows content to be visible, min-height is often better */
+  min-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center; /* Center content vertically */
+  padding: 40px 20px; /* Add padding for spacing */
+  /* Gradient background similar to the reference image */
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-family: 'Poppins', sans-serif;
+  text-align: center;
+  overflow-x: hidden; /* Prevent horizontal scroll */
+}
+
+.hero-content {
+  max-width: 700px; /* Limit width for better readability */
+  margin-bottom: 40px; /* Space between text content and showcase area */
+}
+
+.hero-section h1 {
+  font-size: 3.2rem; /* Slightly larger font size */
+  font-weight: 700; /* Bold */
+  margin-bottom: 20px;
+  line-height: 1.2;
+}
+
+.hero-section p {
+  font-size: 1.15rem; /* Slightly adjusted font size */
+  margin-top: 0;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 30px;
+  line-height: 1.6;
+  opacity: 0.9; /* Slightly less prominent than the heading */
+}
+
+.get-started-btn {
+  margin-top: 10px; /* Reduced top margin */
+  padding: 14px 32px; /* Slightly larger button */
+  font-size: 1.1rem; /* Larger font size for button text */
+  font-weight: 600;
+  border: none;
+  /* Button color from the reference image */
+  background-color: #7f5af0; /* A nice purple shade */
+  color: white;
+  border-radius: 8px; /* More rounded corners */
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.get-started-btn:hover {
+  background-color: #6c4bd6; /* Darker shade on hover */
+  transform: translateY(-2px);
+}
+
+/* Showcase Area Styles */
+.showcase-container {
+  background-color: #ffffff;
+  color: #333;
+  border-radius: 16px; /* More rounded corners */
+  padding: 20px;
+  width: 100%;
+  max-width: 800px; /* Max width for the showcase */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  margin-top: 20px; /* Ensure some space if hero-content is short */
+  display: flex;
+  flex-direction: column;
+}
+
+.showcase-header {
+  display: flex;
+  justify-content: flex-start; /* Align items to the start */
+  gap: 15px; /* Space between dropdowns */
+  padding-bottom: 15px;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #e0e0e0; /* Separator line */
+}
+
+.dropdown-placeholder {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: #f7f7f7; /* Light background for dropdowns */
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: #555;
+  cursor: pointer;
+}
+
+.dropdown-placeholder span {
+  margin-right: 8px;
+}
+
+.dropdown-placeholder svg {
+  stroke: #777;
+}
+
+.showcase-main-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Distribute space */
+  min-height: 200px; /* Give it some height */
+  padding: 10px;
+  background-color: #f9f9f9; /* Slightly different background for content area */
+  border-radius: 8px;
+}
+
+.logo-placeholder {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #888;
+  padding: 20px;
+  border: 2px dashed #ddd; /* Dashed border for placeholder */
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-grow: 1; /* Allow it to take available space */
+  margin-right: 20px; /* Space from graphic elements */
+}
+
+.graphic-elements {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  /* This is a very simplified representation of the graphics */
+}
+
+.graphic-circle {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+}
+
+.graphic-circle.orange {
+  background-color: #ffab73; /* Example color */
+}
+
+.graphic-circle.dark-blue {
+  background-color: #3d5af1; /* Example color */
+}
+
+.graphic-bar {
+  width: 100px;
+  height: 20px;
+  background-color: #cfd8dc; /* Example color */
+  border-radius: 4px;
+}
+
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .hero-section h1 {
+    font-size: 2.5rem; /* Smaller heading on smaller screens */
+  }
+
+  .hero-section p {
+    font-size: 1rem; /* Smaller paragraph text */
+  }
+
+  .get-started-btn {
+    padding: 12px 28px;
+    font-size: 1rem;
+  }
+
+  .showcase-container {
+    padding: 15px;
+    max-width: 90%;
+  }
+
+  .showcase-main-content {
+    flex-direction: column; /* Stack logo and graphics on smaller screens */
+    align-items: stretch; /* Stretch items */
+  }
+
+  .logo-placeholder {
+    margin-right: 0;
+    margin-bottom: 15px; /* Space below logo when stacked */
+    min-height: 100px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-section {
+    padding-top: 20px;
+    padding-bottom: 20px;
+  }
+  .hero-section h1 {
+    font-size: 2rem;
+  }
+
+   .hero-section p {
+    font-size: 0.9rem;
+  }
+
+  .showcase-header {
+    flex-direction: column; /* Stack dropdowns on very small screens */
+    align-items: stretch;
+  }
+
+  .dropdown-placeholder {
+    justify-content: space-between; /* Make dropdowns full width effectively */
+  }
+}
