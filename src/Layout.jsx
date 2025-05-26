@@ -20,6 +20,8 @@ import Pricing from './components/Pricing';
 import Aboutus from './components/Aboutus';
 import Inputpage from './pages/Inputpage';
 
+
+
 const isAuthenticated = () => {
   return !!localStorage.getItem('authToken');
 };
@@ -54,6 +56,7 @@ const Layout = () => {
         <Route path="/contactus" element={<ContactUs />} />
         <Route path="/aboutus" element={<Aboutus />} />
         <Route path="/input" element={<Inputpage />} />
+       
         <Route
           path="/my-work"
           element={

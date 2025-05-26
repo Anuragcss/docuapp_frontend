@@ -55,8 +55,6 @@ const GeneratePPT = () => {
         headerPosition: 'left',
     });
 
-    // const [pptPreviewUrl, setPptPreviewUrl] = useState(''); // Not needed if navigating immediately
-
     const fileInputRef = useRef();
     const customTemplateInputRef = useRef();
     const navigate = useNavigate();
@@ -142,7 +140,6 @@ const GeneratePPT = () => {
         resetTemplateStates();
         setShowSummaryDownloadOptionsModal(false);
         resetSummaryDownloadOptions();
-        // setPptPreviewUrl(''); // Reset preview URL
         if (fileInputRef.current) {
             fileInputRef.current.value = null;
         }
@@ -274,9 +271,9 @@ const GeneratePPT = () => {
             if (response.ok && data.suggested_sections) {
                 const suggestedContentSections = Number(data.suggested_sections);
                 if (!isNaN(suggestedContentSections)) {
-                    const totalEstimatedSlides = suggestedContentSections + 4;
+                    const totalEstimatedSlides = suggestedContentSections + 4; // Assuming 4 are fixed (title, intro, conclusion, thank you)
                     setSuggestedSectionsHint(totalEstimatedSlides); 
-                    if (numParagraphs === 3) { 
+                    if (numParagraphs === 3) { // Only update if it's still the default
                         setNumParagraphs(Math.max(1, Math.min(15, suggestedContentSections)));
                     }
                 } else {
@@ -358,31 +355,38 @@ const GeneratePPT = () => {
 
         try {
             const response = await fetch(apiUrl, { method: 'POST', body: formData });
-            const responseData = await response.json(); // Expect JSON for both summary and PPT now
-
+            
             if (!response.ok) {
-                const errorMsg = responseData.error || responseData.detail || `Generation failed: ${response.status} ${response.statusText}`;
+                // Try to parse error message from JSON response
+                const errorData = await response.json().catch(() => ({})); // Attempt to parse JSON, default to empty object on failure
+                const errorMsg = errorData.error || errorData.detail || `Generation failed: ${response.status} ${response.statusText}`;
                 throw new Error(errorMsg);
             }
 
             if (actionChoice === "ppt") {
+                // For PPT, backend sends JSON with preview_url and download_filename.
+                // We will use download_filename for direct download.
+                const responseData = await response.json();
                 if (responseData.preview_url && responseData.download_filename) {
-                    setSuccessMessage(responseData.message || "✅ PPT ready for preview!");
-                    // Navigate to the preview page with the URL
-                    navigate('/preview-ppt', { 
-                        state: { 
-                            pptUrl: responseData.preview_url, 
-                            fileName: responseData.download_filename 
-                        } 
-                    });
-                    // Keep modal open or close? For now, let's assume it should close after navigating.
-                    // resetAllStates(); // Or selectively reset
-                    setShowModal(false);
+                    setSuccessMessage(responseData.message || "✅ PPT generated successfully! Starting download...");
+                    
+                    // Create a temporary link to trigger the download.
+                    // The preview_url from backend is the path to the static file.
+                    const downloadUrl = `http://localhost:8000${responseData.preview_url}`;
+                    const link = document.createElement('a');
+                    link.href = downloadUrl;
+                    link.setAttribute('download', responseData.download_filename); // Use the filename from backend
+                    document.body.appendChild(link);
+                    link.click();
+                    link.parentNode.removeChild(link);
+                    // No need to revokeObjectURL as we are using a direct server URL
 
+                    setShowModal(false); 
                 } else {
-                    throw new Error('Server did not return a valid preview URL for the PPT.');
+                    throw new Error('Server did not return valid data for PPT download.');
                 }
             } else { // actionChoice === "summary"
+                const responseData = await response.json();
                 setSummaryOutput({
                     title: responseData.topic || currentSummaryTitle,
                     introduction: responseData.introduction || '',
@@ -411,7 +415,6 @@ const GeneratePPT = () => {
         setActionChoice("ppt"); 
         resetHeaderFooterState();
         resetTemplateStates();
-        // setPptPreviewUrl(''); // Clear previous preview URL if any
         setShowModal(true);
         setShowSummaryDisplay(false);
         setShowGeneratePPTFromSummaryButton(false);
@@ -511,7 +514,7 @@ const GeneratePPT = () => {
         : "Detail Level (influences paragraph/keypoint count):";
     const numParagraphsMinVal = 1;
     const numParagraphsMaxVal = isPptModeActive ? 15 : 10;
-    const currentTotalSlides = isPptModeActive ? numParagraphs + 4 : null;
+    const currentTotalSlides = isPptModeActive ? numParagraphs + 4 : null; // Assuming 4 fixed slides
 
 
     return (
@@ -741,7 +744,7 @@ const GeneratePPT = () => {
                                             Cancel & Clear All
                                         </button>
                                         <button onClick={handlePrimaryAction} className={styles.uploadButton} disabled={loading || loadingHint}>
-                                            {loading ? '⏳ Processing...' : (actionChoice === "summary" ? '🚀 Generate Summary' : '📊 Generate PPT & Preview')}
+                                            {loading ? '⏳ Processing...' : (actionChoice === "summary" ? '🚀 Generate Summary' : '📊 Generate PPT')}
                                         </button>
                                     </div>
                                 </>
@@ -842,7 +845,7 @@ const GeneratePPT = () => {
                                     className={styles.actionButton}
                                     disabled={loading}
                                 >
-                                    📊 Generate PPT & Preview
+                                    📊 Generate PPT
                                 </button>
                             )}
                         </div>

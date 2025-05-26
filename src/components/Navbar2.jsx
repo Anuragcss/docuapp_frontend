@@ -6,10 +6,19 @@ import ProfileDropdown from './ProfileDropdown';
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const isLoggedIn = !!localStorage.getItem('authToken');
-  const user = JSON.parse(localStorage.getItem('user')) || {};
-  const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef();
+
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [user, setUser] = useState(() => {
+    const storedUser = localStorage.getItem('user');
+    return storedUser ? JSON.parse(storedUser) : null;
+  });
+
+  // Detect route change or login state changes
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    setUser(storedUser ? JSON.parse(storedUser) : null);
+  }, [location.pathname]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -21,6 +30,8 @@ const Navbar = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const isLoggedIn = !!localStorage.getItem('authToken');
+
   return (
     <nav className="navbar">
       {/* Logo on the left */}
@@ -28,14 +39,10 @@ const Navbar = () => {
         <Link to="/">DocuApp</Link>
       </div>
 
-      {/* Center Text */}
-      <div className="nav-center">
-        <h2>Document Summary</h2>
-      </div>
 
       {/* Right Buttons */}
       <div className="nav-buttons">
-        {isLoggedIn ? (
+        {isLoggedIn && user ? (
           <div className="profile-wrapper" ref={dropdownRef}>
             <div
               className="user-info"
@@ -54,7 +61,7 @@ const Navbar = () => {
                   style={{ width: '32px', height: '32px', borderRadius: '50%' }}
                 />
               )}
-              <span className="user-name" style={{ fontWeight: 500 }}>{user.name}</span>
+              <span className="user-name" style={{ fontWeight: 500 }}>{user.name || user.email}</span>
             </div>
 
             {dropdownOpen && (

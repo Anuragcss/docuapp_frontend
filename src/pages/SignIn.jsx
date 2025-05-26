@@ -1,10 +1,75 @@
-import React from "react";
-import { Link } from "react-router-dom";
-import { GoogleLogin } from "@react-oauth/google";
-import { jwtDecode } from "jwt-decode";
-import "./signin.css";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom"; // Added useNavigate
+import { GoogleLogin } from "@react-oauth/google"; //
+import { jwtDecode } from "jwt-decode"; //
+import "./signin.css"; //
+
+const API_BASE_URL = "http://localhost:8000"; // Or your backend URL
 
 const SignIn = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
+  const navigate = useNavigate(); // For redirection
+
+  const handleEmailPasswordSignIn = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    if (!email || !password) {
+      setError("Email and password are required.");
+      return;
+    }
+
+    try {
+      const formData = new URLSearchParams();
+      formData.append('username', email); // 'username' is used for email here
+      formData.append('password', password);
+
+      const response = await fetch(`${API_BASE_URL}/auth/login`, { // Fixed template literal
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: formData.toString(),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.detail || "Sign in failed. Please check your credentials.");
+      } else {
+        console.log("Email/Password Sign In Success:", data);
+        localStorage.setItem('authToken', data.access_token);
+        localStorage.setItem('user', JSON.stringify({ 
+            email: data.email,
+            userId: data.user_id,
+            isGoogleUser: false 
+        }));
+        navigate("/generate"); // 🔄 REDIRECT TO GeneratePPT
+      }
+    } catch (err) {
+      console.error("Sign in error:", err);
+      setError("An unexpected error occurred. Please try again later.");
+    }
+  };
+
+  const handleGoogleSuccess = (credentialResponse) => {
+    const decoded = jwtDecode(credentialResponse.credential);
+    console.log("Google Login Success:", decoded);
+
+    localStorage.setItem('authToken', credentialResponse.credential);
+    localStorage.setItem('user', JSON.stringify({
+        email: decoded.email,
+        name: decoded.name,
+        picture: decoded.picture,
+        isGoogleUser: true 
+    }));
+
+    navigate('/generate'); // 🔄 REDIRECT TO GeneratePPT
+  };
+
   return (
     <div className="signin-container">
       <div className="signin-left">
@@ -16,34 +81,46 @@ const SignIn = () => {
 
         <div className="google-signin">
           <GoogleLogin
-            onSuccess={(credentialResponse) => {
-              const decoded = jwtDecode(credentialResponse.credential);
-              console.log("Google Login Success:", decoded);
-
-              // ✅ Store token & user data
-              localStorage.setItem('authToken', credentialResponse.credential);
-              localStorage.setItem('user', JSON.stringify(decoded));
-
-              // ✅ Redirect to HeroSection (home page)
-              window.location.href = '/';
-            }}
+            onSuccess={handleGoogleSuccess}
             onError={() => {
               console.log("Google Login Failed");
+              setError("Google Sign In failed. Please try again or use email/password.");
             }}
           />
         </div>
 
         <p className="or">or</p>
 
-        <input type="email" placeholder="Enter your email" />
-        <input type="password" placeholder="Password" />
+        {error && <p className="error-message" style={{color: 'red', textAlign: 'center'}}>{error}</p>}
 
-        <div className="terms">
-          <input type="checkbox" id="remember" />
-          <label htmlFor="remember">Remember me</label>
-        </div>
+        <form onSubmit={handleEmailPasswordSignIn}>
+          <input 
+            type="email" 
+            placeholder="Enter your email" 
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          <input 
+            type="password" 
+            placeholder="Password" 
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
 
-        <button className="continue-btn">Sign In</button>
+          <div className="terms">
+            <input 
+              type="checkbox" 
+              id="remember" 
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+            />
+            <label htmlFor="remember">Remember me</label>
+          </div>
+
+          <button type="submit" className="continue-btn">Sign In</button>
+        </form>
 
         <p className="forgot-password">
           <Link to="/forgot-password">Forgot password?</Link>

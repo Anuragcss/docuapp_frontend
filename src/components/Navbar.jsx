@@ -6,10 +6,30 @@ import ProfileDropdown from './ProfileDropdown';
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const isLoggedIn = !!localStorage.getItem('authToken');
-  const user = JSON.parse(localStorage.getItem('user')) || {};
-  const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef();
+
+  const [user, setUser] = useState(() => {
+    const storedUser = localStorage.getItem('user');
+    return storedUser ? JSON.parse(storedUser) : null;
+  });
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  // Update user state on storage changes
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const updatedUser = localStorage.getItem('user');
+      setUser(updatedUser ? JSON.parse(updatedUser) : null);
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  // Also run this when navigating between pages
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    setUser(storedUser ? JSON.parse(storedUser) : null);
+  }, [location.pathname]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -20,6 +40,8 @@ const Navbar = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const isLoggedIn = !!localStorage.getItem('authToken');
 
   return (
     <nav className="navbar">
@@ -34,7 +56,7 @@ const Navbar = () => {
       </ul>
 
       <div className="nav-buttons">
-        {isLoggedIn ? (
+        {isLoggedIn && user ? (
           <div className="profile-wrapper" ref={dropdownRef}>
             <div
               className="user-info"
@@ -53,7 +75,7 @@ const Navbar = () => {
                   style={{ width: '32px', height: '32px', borderRadius: '50%' }}
                 />
               )}
-              <span className="user-name" style={{ fontWeight: 500 }}>{user.name}</span>
+              <span className="user-name" style={{ fontWeight: 500 }}>{user.name || user.email}</span>
             </div>
 
             {dropdownOpen && (
@@ -78,4 +100,3 @@ const Navbar = () => {
 };
 
 export default Navbar;
-

@@ -10,11 +10,14 @@ body {
 .signin-container {
   display: flex;
   align-items: center;
-  justify-content: flex-start; /* Align to left */
-  height: 100vh;
+  justify-content: center; /* Align to the center */
+  height: 100%;
   width: 100%;
   background: linear-gradient(to right, #8360c3, #2ebf91);
-  padding: 20px 40px; /* Add left spacing */
+  padding: 20px 40px; /* Add horizontal padding */
+
+  flex-wrap: wrap;
+  margin-top: -50px;
 }
 
 /* Left Section (Form) */
