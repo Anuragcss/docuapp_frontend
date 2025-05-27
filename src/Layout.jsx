@@ -19,6 +19,7 @@ import ContactUs from './components/ContactUs';
 import Pricing from './components/Pricing';
 import Aboutus from './components/Aboutus';
 import Inputpage from './pages/Inputpage';
+import PPTPreview from './pages/PPTPreview'; 
 
 
 
@@ -56,6 +57,7 @@ const Layout = () => {
         <Route path="/contactus" element={<ContactUs />} />
         <Route path="/aboutus" element={<Aboutus />} />
         <Route path="/input" element={<Inputpage />} />
+         <Route path="/preview-ppt" element={<PPTPreview />} /> 
        
         <Route
           path="/my-work"

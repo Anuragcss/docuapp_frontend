@@ -357,36 +357,42 @@ const GeneratePPT = () => {
             const response = await fetch(apiUrl, { method: 'POST', body: formData });
             
             if (!response.ok) {
-                // Try to parse error message from JSON response
-                const errorData = await response.json().catch(() => ({})); // Attempt to parse JSON, default to empty object on failure
+                const errorData = await response.json().catch(() => ({})); 
                 const errorMsg = errorData.error || errorData.detail || `Generation failed: ${response.status} ${response.statusText}`;
                 throw new Error(errorMsg);
             }
+            const responseData = await response.json();
 
             if (actionChoice === "ppt") {
-                // For PPT, backend sends JSON with preview_url and download_filename.
-                // We will use download_filename for direct download.
-                const responseData = await response.json();
-                if (responseData.preview_url && responseData.download_filename) {
-                    setSuccessMessage(responseData.message || "✅ PPT generated successfully! Starting download...");
-                    
-                    // Create a temporary link to trigger the download.
-                    // The preview_url from backend is the path to the static file.
-                    const downloadUrl = `http://localhost:8000${responseData.preview_url}`;
-                    const link = document.createElement('a');
-                    link.href = downloadUrl;
-                    link.setAttribute('download', responseData.download_filename); // Use the filename from backend
-                    document.body.appendChild(link);
-                    link.click();
-                    link.parentNode.removeChild(link);
-                    // No need to revokeObjectURL as we are using a direct server URL
-
+                if (responseData.slide_image_urls && responseData.pptx_download_url) {
+                    setSuccessMessage(responseData.message || "✅ PPT generated! Redirecting to preview...");
                     setShowModal(false); 
+                    navigate('/preview-ppt', { 
+                        state: { 
+                            slide_image_urls: responseData.slide_image_urls,
+                            pptx_download_url: responseData.pptx_download_url,
+                            pptx_filename: responseData.pptx_filename,
+                            total_slides: responseData.total_slides,
+                            topic: currentSummaryTitle 
+                        } 
+                    });
                 } else {
-                    throw new Error('Server did not return valid data for PPT download.');
+                     if (responseData.pptx_download_url) { // Preview failed, but PPTX available
+                        setErrorMessage(responseData.message || 'PPT generated, but preview is unavailable. You can try downloading.');
+                        const downloadUrl = `http://localhost:8000${responseData.pptx_download_url}`;
+                        const link = document.createElement('a');
+                        link.href = downloadUrl;
+                        link.setAttribute('download', responseData.pptx_filename);
+                        document.body.appendChild(link);
+                        link.click();
+                        link.parentNode.removeChild(link);
+                        setSuccessMessage('PPT downloaded as preview was unavailable.');
+                        setShowModal(false);
+                    } else {
+                        throw new Error(responseData.error ||'Server did not return valid data for PPT preview or download.');
+                    }
                 }
             } else { // actionChoice === "summary"
-                const responseData = await response.json();
                 setSummaryOutput({
                     title: responseData.topic || currentSummaryTitle,
                     introduction: responseData.introduction || '',
