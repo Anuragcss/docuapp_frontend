@@ -262,11 +262,34 @@ const GeneratePPT = () => {
             return;
         }
 
+        // ** START: ADDED AUTH TOKEN FOR CONTENT METRICS **
+        const token = localStorage.getItem('authToken');
+        const headers = {};
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        } else {
+            setErrorMessage('Authentication token not found. Please log in.');
+            setLoadingHint(false);
+            return;
+        }
+        // ** END: ADDED AUTH TOKEN FOR CONTENT METRICS **
+
+
         try {
             const response = await fetch("http://localhost:8000/estimate-content-metrics/", {
                 method: 'POST',
+                headers: headers, // ** ADDED headers here **
                 body: formData,
             });
+
+            if (response.status === 401) {
+                setErrorMessage('Unauthorized. Your session may have expired. Please log in again.');
+                localStorage.removeItem('authToken');
+                setLoadingHint(false);
+                // Potentially navigate to login: navigate('/login');
+                return;
+            }
+
             const data = await response.json();
             if (response.ok && data.suggested_sections) {
                 const suggestedContentSections = Number(data.suggested_sections);
@@ -293,7 +316,13 @@ const GeneratePPT = () => {
 
     useEffect(() => {
         if (actionChoice === 'ppt' && originalInputDetails && showModal) {
-            fetchContentMetrics();
+            const token = localStorage.getItem('authToken');
+            if (token) { // Only fetch if token exists
+                fetchContentMetrics();
+            } else {
+                setErrorMessage('Authentication token not found. Please log in to get slide estimations.');
+                setSuggestedSectionsHint("Auth required for hint");
+            }
         }
     }, [actionChoice, originalInputDetails, showModal]);
 
@@ -311,6 +340,17 @@ const GeneratePPT = () => {
             setErrorMessage("Please select an action (Get Summary or Convert to PPT).");
             return;
         }
+
+        // ** START: ADDED AUTH TOKEN RETRIEVAL AND CHECK **
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            setErrorMessage('Not authenticated. Please log in to generate content.');
+            setLoading(false);
+            // Optionally, redirect to login or show login modal
+            // navigate('/login'); 
+            return;
+        }
+        // ** END: ADDED AUTH TOKEN RETRIEVAL AND CHECK **
 
         setLoading(true);
         clearSummaryDisplay();
@@ -354,8 +394,24 @@ const GeneratePPT = () => {
         const apiUrl = "http://localhost:8000/generate-ppt/"; 
 
         try {
-            const response = await fetch(apiUrl, { method: 'POST', body: formData });
+            // ** START: ADDED HEADERS WITH AUTH TOKEN **
+            const headers = {
+                'Authorization': `Bearer ${token}`,
+                // FormData sets its own Content-Type, so don't manually set it here
+            };
+            const response = await fetch(apiUrl, { method: 'POST', headers: headers, body: formData });
+            // ** END: ADDED HEADERS WITH AUTH TOKEN **
             
+            // ** START: ADDED 401 UNAUTHORIZED HANDLING **
+            if (response.status === 401) {
+                setErrorMessage('Unauthorized. Your session may have expired. Please log in again.');
+                localStorage.removeItem('authToken'); // Clear expired token
+                // Optionally, redirect to login or show login modal
+                // navigate('/login'); 
+                throw new Error('User not authenticated'); // Stop further processing
+            }
+            // ** END: ADDED 401 UNAUTHORIZED HANDLING **
+
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({})); 
                 const errorMsg = errorData.error || errorData.detail || `Generation failed: ${response.status} ${response.statusText}`;
@@ -406,7 +462,10 @@ const GeneratePPT = () => {
             }
         } catch (err) {
             console.error("❌ Upload/Processing error:", err);
-            setErrorMessage(err.message || "An unexpected error occurred. Please try again.");
+            // Avoid overwriting specific auth error message
+            if (err.message !== 'User not authenticated') {
+                setErrorMessage(err.message || "An unexpected error occurred. Please try again.");
+            }
             clearSummaryDisplay();
         } finally {
             setLoading(false);
@@ -416,6 +475,11 @@ const GeneratePPT = () => {
     const handleGeneratePPTFromSummaryClick = () => {
         if (!originalInputDetails) {
             setErrorMessage("Original content details are missing. Please start over to generate PPT.");
+            return;
+        }
+        const token = localStorage.getItem('authToken'); // Check token before showing modal
+        if (!token) {
+            setErrorMessage('Not authenticated. Please log in to generate a PPT from summary.');
             return;
         }
         setActionChoice("ppt"); 
@@ -440,6 +504,16 @@ const GeneratePPT = () => {
             setErrorMessage("No summary content to download.");
             return;
         }
+
+        // ** START: ADDED AUTH TOKEN FOR SUMMARY DOWNLOAD **
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            setErrorMessage('Not authenticated. Please log in to download the summary.');
+            setLoading(false);
+            return;
+        }
+        // ** END: ADDED AUTH TOKEN FOR SUMMARY DOWNLOAD **
+
         setLoading(true);
         setSuccessMessage('');
         setErrorMessage('');
@@ -457,11 +531,26 @@ const GeneratePPT = () => {
         const apiUrl = "http://localhost:8000/generate-summary-docx/";
 
         try {
+            // ** START: ADDED HEADERS WITH AUTH TOKEN FOR SUMMARY DOWNLOAD **
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            };
             const response = await fetch(apiUrl, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: headers,
                 body: JSON.stringify(payload),
             });
+            // ** END: ADDED HEADERS WITH AUTH TOKEN FOR SUMMARY DOWNLOAD **
+
+            // ** START: ADDED 401 UNAUTHORIZED HANDLING FOR SUMMARY DOWNLOAD **
+            if (response.status === 401) {
+                setErrorMessage('Unauthorized. Your session may have expired. Please log in again.');
+                localStorage.removeItem('authToken');
+                throw new Error('User not authenticated for summary download');
+            }
+            // ** END: ADDED 401 UNAUTHORIZED HANDLING FOR SUMMARY DOWNLOAD **
+
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
@@ -489,7 +578,9 @@ const GeneratePPT = () => {
             }
         } catch (err) {
             console.error("❌ DOCX Download error:", err);
-            setErrorMessage(err.message || "An unexpected error occurred while downloading DOCX. Please try again.");
+            if (err.message !== 'User not authenticated for summary download') {
+                 setErrorMessage(err.message || "An unexpected error occurred while downloading DOCX. Please try again.");
+            }
         } finally {
             setLoading(false);
         }
