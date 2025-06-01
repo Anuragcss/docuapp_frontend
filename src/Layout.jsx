@@ -20,6 +20,8 @@ import Pricing from './components/Pricing';
 import Aboutus from './components/Aboutus';
 import Inputpage from './pages/Inputpage';
 import PPTPreview from './pages/PPTPreview'; 
+import ForgotPassword from './pages/ForgotPassword'; // Adjust path
+import ResetPassword from './pages/ResetPassword'; 
 
 
 
@@ -58,6 +60,8 @@ const Layout = () => {
         <Route path="/aboutus" element={<Aboutus />} />
         <Route path="/input" element={<Inputpage />} />
          <Route path="/preview-ppt" element={<PPTPreview />} /> 
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
        
         <Route
           path="/my-work"

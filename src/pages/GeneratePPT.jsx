@@ -1,4 +1,4 @@
-// GeneratePPT.jsx
+
 import React, { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './GeneratePPT.module.css';
@@ -28,13 +28,14 @@ const GeneratePPT = () => {
     const [urlInput, setUrlInput] = useState('');
 
     const [actionChoice, setActionChoice] = useState(null);
-    const [numParagraphs, setNumParagraphs] = useState(3);
+    const [numParagraphs, setNumParagraphs] = useState(3); // User's desired number of content slides
     const [currentSummaryTitle, setCurrentSummaryTitle] = useState('');
     
-    const [suggestedSectionsHint, setSuggestedSectionsHint] = useState(null);
+    const [suggestedSectionsHint, setSuggestedSectionsHint] = useState(null); // Stores AI's suggested TOTAL max slides
+    const [suggestedMaxContentSlides, setSuggestedMaxContentSlides] = useState(null); // Stores AI's suggested MAX CONTENT slides
     const [loadingHint, setLoadingHint] = useState(false);
 
-    const [pptContentStyle, setPptContentStyle] = useState('paragraphs');
+    // pptContentStyle removed from state
     const [summaryContentStyle, setSummaryContentStyle] = useState('paragraphs');
 
     const [includeDateTime, setIncludeDateTime] = useState(false);
@@ -46,6 +47,7 @@ const GeneratePPT = () => {
 
     const [useDefaultTemplate, setUseDefaultTemplate] = useState(true);
     const [customTemplateFile, setCustomTemplateFile] = useState(null);
+    const [customLogoFile, setCustomLogoFile] = useState(null); 
 
     const [showSummaryDownloadOptionsModal, setShowSummaryDownloadOptionsModal] = useState(false);
     const [summaryDownloadOptions, setSummaryDownloadOptions] = useState({
@@ -57,6 +59,7 @@ const GeneratePPT = () => {
 
     const fileInputRef = useRef();
     const customTemplateInputRef = useRef();
+    const customLogoInputRef = useRef(); 
     const navigate = useNavigate();
 
     const getCurrentDateInputFormat = () => {
@@ -100,11 +103,15 @@ const GeneratePPT = () => {
         setDontShowOnTitleSlide(true);
     };
 
-    const resetTemplateStates = () => {
+    const resetTemplateAndBrandingStates = () => { 
         setUseDefaultTemplate(true);
         setCustomTemplateFile(null);
+        setCustomLogoFile(null); 
         if (customTemplateInputRef.current) {
             customTemplateInputRef.current.value = null;
+        }
+        if (customLogoInputRef.current) { 
+            customLogoInputRef.current.value = null;
         }
     };
 
@@ -133,11 +140,11 @@ const GeneratePPT = () => {
         setNumParagraphs(3);
         setCurrentSummaryTitle('');
         setSuggestedSectionsHint(null);
+        setSuggestedMaxContentSlides(null);
         setLoadingHint(false);
-        setPptContentStyle('paragraphs');
         setSummaryContentStyle('paragraphs');
         resetHeaderFooterState();
-        resetTemplateStates();
+        resetTemplateAndBrandingStates(); 
         setShowSummaryDownloadOptionsModal(false);
         resetSummaryDownloadOptions();
         if (fileInputRef.current) {
@@ -154,10 +161,11 @@ const GeneratePPT = () => {
         setShowUrlInput(false);
         setActionChoice(null);
         setSuggestedSectionsHint(null);
+        setSuggestedMaxContentSlides(null);
         setNumParagraphs(3);
         setSummaryContentStyle('paragraphs');
         resetHeaderFooterState();
-        resetTemplateStates();
+        resetTemplateAndBrandingStates(); 
         clearSummaryDisplay();
         setErrorMessage('');
         setSuccessMessage('');
@@ -190,7 +198,7 @@ const GeneratePPT = () => {
         clearSummaryDisplay();
         setShowPasteTextArea(false);
         setShowUrlInput(false);
-        resetTemplateStates();
+        resetTemplateAndBrandingStates(); 
         if (fileInputRef.current) fileInputRef.current.value = null;
         fileInputRef.current.click();
     };
@@ -220,7 +228,29 @@ const GeneratePPT = () => {
                 }
             }
         } else {
-            setCustomTemplateFile(null);
+             setCustomTemplateFile(null); 
+             if (!customLogoFile) { 
+                setUseDefaultTemplate(true);
+             }
+        }
+    };
+
+    const handleCustomLogoFileChange = (e) => { 
+        const file = e.target.files[0];
+        if (file) {
+            const allowedTypes = ['image/png', 'image/jpeg', 'image/gif', 'image/bmp', 'image/webp'];
+            if (allowedTypes.includes(file.type) && file.size < 5 * 1024 * 1024) { 
+                setCustomLogoFile(file);
+                setErrorMessage('');
+            } else {
+                setErrorMessage('Invalid logo file. Please select a PNG, JPG, GIF, BMP, or WEBP image under 5MB.');
+                setCustomLogoFile(null);
+                if (customLogoInputRef.current) {
+                    customLogoInputRef.current.value = null;
+                }
+            }
+        } else {
+            setCustomLogoFile(null);
         }
     };
 
@@ -240,6 +270,7 @@ const GeneratePPT = () => {
         setShowModal(true);
         setActionChoice(null); 
         setSuggestedSectionsHint(null); 
+        setSuggestedMaxContentSlides(null);
         setNumParagraphs(3); 
     };
 
@@ -248,6 +279,7 @@ const GeneratePPT = () => {
         if (!originalInputDetails) return;
         setLoadingHint(true);
         setSuggestedSectionsHint(null); 
+        setSuggestedMaxContentSlides(null);
 
         const formData = new FormData();
         if (originalInputDetails.type === 'file' && originalInputDetails.fileObject) {
@@ -262,7 +294,6 @@ const GeneratePPT = () => {
             return;
         }
 
-        // ** START: ADDED AUTH TOKEN FOR CONTENT METRICS **
         const token = localStorage.getItem('authToken');
         const headers = {};
         if (token) {
@@ -272,13 +303,11 @@ const GeneratePPT = () => {
             setLoadingHint(false);
             return;
         }
-        // ** END: ADDED AUTH TOKEN FOR CONTENT METRICS **
-
 
         try {
             const response = await fetch("http://localhost:8000/estimate-content-metrics/", {
                 method: 'POST',
-                headers: headers, // ** ADDED headers here **
+                headers: headers, 
                 body: formData,
             });
 
@@ -286,28 +315,31 @@ const GeneratePPT = () => {
                 setErrorMessage('Unauthorized. Your session may have expired. Please log in again.');
                 localStorage.removeItem('authToken');
                 setLoadingHint(false);
-                // Potentially navigate to login: navigate('/login');
                 return;
             }
 
             const data = await response.json();
             if (response.ok && data.suggested_sections) {
-                const suggestedContentSections = Number(data.suggested_sections);
-                if (!isNaN(suggestedContentSections)) {
-                    const totalEstimatedSlides = suggestedContentSections + 4; // Assuming 4 are fixed (title, intro, conclusion, thank you)
-                    setSuggestedSectionsHint(totalEstimatedSlides); 
+                const suggestedMaxContent = Number(data.suggested_sections); // This is now MAX CONTENT SLIDES
+                if (!isNaN(suggestedMaxContent)) {
+                    const totalEstimatedMaxSlides = suggestedMaxContent + 4; // Title, Intro, Conclusion, Thank You
+                    setSuggestedSectionsHint(totalEstimatedMaxSlides); 
+                    setSuggestedMaxContentSlides(suggestedMaxContent);
                     if (numParagraphs === 3) { // Only update if it's still the default
-                        setNumParagraphs(Math.max(1, Math.min(15, suggestedContentSections)));
+                        setNumParagraphs(Math.max(1, Math.min(15, suggestedMaxContent))); // Cap user default to 15 or suggestedMaxContent
                     }
                 } else {
                     setSuggestedSectionsHint("N/A (invalid AI suggestion)");
+                    setSuggestedMaxContentSlides(null);
                 }
             } else {
                 setSuggestedSectionsHint(data.error || "N/A");
+                setSuggestedMaxContentSlides(null);
                 console.error("Failed to fetch content metrics:", data.error || "Unknown error");
             }
         } catch (error) {
             setSuggestedSectionsHint("Error fetching hint");
+            setSuggestedMaxContentSlides(null);
             console.error("Error fetching content metrics:", error);
         } finally {
             setLoadingHint(false);
@@ -317,11 +349,12 @@ const GeneratePPT = () => {
     useEffect(() => {
         if (actionChoice === 'ppt' && originalInputDetails && showModal) {
             const token = localStorage.getItem('authToken');
-            if (token) { // Only fetch if token exists
+            if (token) { 
                 fetchContentMetrics();
             } else {
                 setErrorMessage('Authentication token not found. Please log in to get slide estimations.');
                 setSuggestedSectionsHint("Auth required for hint");
+                setSuggestedMaxContentSlides(null);
             }
         }
     }, [actionChoice, originalInputDetails, showModal]);
@@ -341,16 +374,12 @@ const GeneratePPT = () => {
             return;
         }
 
-        // ** START: ADDED AUTH TOKEN RETRIEVAL AND CHECK **
         const token = localStorage.getItem('authToken');
         if (!token) {
             setErrorMessage('Not authenticated. Please log in to generate content.');
             setLoading(false);
-            // Optionally, redirect to login or show login modal
-            // navigate('/login'); 
             return;
         }
-        // ** END: ADDED AUTH TOKEN RETRIEVAL AND CHECK **
 
         setLoading(true);
         clearSummaryDisplay();
@@ -373,10 +402,10 @@ const GeneratePPT = () => {
             return;
         }
 
-        formData.append("num_paragraphs", numParagraphs); 
+        formData.append("num_paragraphs", numParagraphs); // User's desired number of content slides
 
         if (actionChoice === "ppt") {
-            formData.append("ppt_content_style", pptContentStyle);
+            // ppt_content_style removed from formData
             formData.append("include_date_time", includeDateTime);
             formData.append("update_date_time_auto", updateDateTimeAutomatically);
             formData.append("fixed_date_time", fixedDateTime || getCurrentDateInputFormat());
@@ -387,6 +416,9 @@ const GeneratePPT = () => {
             if (customTemplateFile) {
                 formData.append("custom_template_file", customTemplateFile, customTemplateFile.name);
             }
+            if (customLogoFile) { 
+                formData.append("custom_logo_file", customLogoFile, customLogoFile.name);
+            }
         } else if (actionChoice === "summary") {
             formData.append("summary_style", summaryContentStyle);
         }
@@ -394,23 +426,16 @@ const GeneratePPT = () => {
         const apiUrl = "http://localhost:8000/generate-ppt/"; 
 
         try {
-            // ** START: ADDED HEADERS WITH AUTH TOKEN **
             const headers = {
                 'Authorization': `Bearer ${token}`,
-                // FormData sets its own Content-Type, so don't manually set it here
             };
             const response = await fetch(apiUrl, { method: 'POST', headers: headers, body: formData });
-            // ** END: ADDED HEADERS WITH AUTH TOKEN **
             
-            // ** START: ADDED 401 UNAUTHORIZED HANDLING **
             if (response.status === 401) {
                 setErrorMessage('Unauthorized. Your session may have expired. Please log in again.');
-                localStorage.removeItem('authToken'); // Clear expired token
-                // Optionally, redirect to login or show login modal
-                // navigate('/login'); 
-                throw new Error('User not authenticated'); // Stop further processing
+                localStorage.removeItem('authToken'); 
+                throw new Error('User not authenticated'); 
             }
-            // ** END: ADDED 401 UNAUTHORIZED HANDLING **
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({})); 
@@ -433,7 +458,7 @@ const GeneratePPT = () => {
                         } 
                     });
                 } else {
-                     if (responseData.pptx_download_url) { // Preview failed, but PPTX available
+                     if (responseData.pptx_download_url) { 
                         setErrorMessage(responseData.message || 'PPT generated, but preview is unavailable. You can try downloading.');
                         const downloadUrl = `http://localhost:8000${responseData.pptx_download_url}`;
                         const link = document.createElement('a');
@@ -448,7 +473,7 @@ const GeneratePPT = () => {
                         throw new Error(responseData.error ||'Server did not return valid data for PPT preview or download.');
                     }
                 }
-            } else { // actionChoice === "summary"
+            } else { 
                 setSummaryOutput({
                     title: responseData.topic || currentSummaryTitle,
                     introduction: responseData.introduction || '',
@@ -462,7 +487,6 @@ const GeneratePPT = () => {
             }
         } catch (err) {
             console.error("❌ Upload/Processing error:", err);
-            // Avoid overwriting specific auth error message
             if (err.message !== 'User not authenticated') {
                 setErrorMessage(err.message || "An unexpected error occurred. Please try again.");
             }
@@ -477,14 +501,14 @@ const GeneratePPT = () => {
             setErrorMessage("Original content details are missing. Please start over to generate PPT.");
             return;
         }
-        const token = localStorage.getItem('authToken'); // Check token before showing modal
+        const token = localStorage.getItem('authToken'); 
         if (!token) {
             setErrorMessage('Not authenticated. Please log in to generate a PPT from summary.');
             return;
         }
         setActionChoice("ppt"); 
         resetHeaderFooterState();
-        resetTemplateStates();
+        resetTemplateAndBrandingStates(); 
         setShowModal(true);
         setShowSummaryDisplay(false);
         setShowGeneratePPTFromSummaryButton(false);
@@ -504,15 +528,12 @@ const GeneratePPT = () => {
             setErrorMessage("No summary content to download.");
             return;
         }
-
-        // ** START: ADDED AUTH TOKEN FOR SUMMARY DOWNLOAD **
         const token = localStorage.getItem('authToken');
         if (!token) {
             setErrorMessage('Not authenticated. Please log in to download the summary.');
             setLoading(false);
             return;
         }
-        // ** END: ADDED AUTH TOKEN FOR SUMMARY DOWNLOAD **
 
         setLoading(true);
         setSuccessMessage('');
@@ -531,7 +552,6 @@ const GeneratePPT = () => {
         const apiUrl = "http://localhost:8000/generate-summary-docx/";
 
         try {
-            // ** START: ADDED HEADERS WITH AUTH TOKEN FOR SUMMARY DOWNLOAD **
             const headers = {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`,
@@ -541,15 +561,12 @@ const GeneratePPT = () => {
                 headers: headers,
                 body: JSON.stringify(payload),
             });
-            // ** END: ADDED HEADERS WITH AUTH TOKEN FOR SUMMARY DOWNLOAD **
 
-            // ** START: ADDED 401 UNAUTHORIZED HANDLING FOR SUMMARY DOWNLOAD **
             if (response.status === 401) {
                 setErrorMessage('Unauthorized. Your session may have expired. Please log in again.');
                 localStorage.removeItem('authToken');
                 throw new Error('User not authenticated for summary download');
             }
-            // ** END: ADDED 401 UNAUTHORIZED HANDLING FOR SUMMARY DOWNLOAD **
 
 
             if (!response.ok) {
@@ -607,11 +624,11 @@ const GeneratePPT = () => {
 
     const isPptModeActive = actionChoice === "ppt";
     const numParagraphsLabelText = isPptModeActive
-        ? "Number of Content Slides (from themed sections):"
+        ? "Number of Content Slides (e.g., for themed sections):" 
         : "Detail Level (influences paragraph/keypoint count):";
     const numParagraphsMinVal = 1;
-    const numParagraphsMaxVal = isPptModeActive ? 15 : 10;
-    const currentTotalSlides = isPptModeActive ? numParagraphs + 4 : null; // Assuming 4 fixed slides
+    const numParagraphsMaxVal = isPptModeActive ? 15 : 10; 
+    const currentTotalSlides = isPptModeActive ? numParagraphs + 4 : null; 
 
 
     return (
@@ -728,9 +745,10 @@ const GeneratePPT = () => {
                                         {isPptModeActive && (
                                             loadingHint ? 
                                             <span className={styles.hintText}> (Estimating total slides...)</span> 
-                                            : (suggestedSectionsHint !== null && typeof suggestedSectionsHint === 'number' ? 
+                                            : (suggestedSectionsHint !== null && typeof suggestedSectionsHint === 'number' && suggestedMaxContentSlides !== null ? 
                                                 <span className={styles.hintText}> 
-                                                    (AI estimates approx. {suggestedSectionsHint} total slides. 
+                                                    (AI estimates a max of approx. {suggestedSectionsHint} total slides can be generated from this content, 
+                                                    based on up to {suggestedMaxContentSlides} content slides. 
                                                     Your current settings will generate {currentTotalSlides} total slides based on {numParagraphs} content slides.)
                                                 </span>
                                                 : (suggestedSectionsHint !== null && <span className={styles.hintText}> (Hint: {suggestedSectionsHint})</span> ) 
@@ -765,19 +783,9 @@ const GeneratePPT = () => {
 
                                     {actionChoice === "ppt" && (
                                         <>
-                                            <h4 className={styles.modalSectionTitle}>PPT Content Style:</h4>
-                                            <div className={styles.radioGroupContainer}>
-                                                <div className={styles.radioOption}>
-                                                    <input type="radio" id="pptStyleParagraph" name="pptContentStyle" value="paragraphs" checked={pptContentStyle === 'paragraphs'} onChange={(e) => setPptContentStyle(e.target.value)} />
-                                                    <label htmlFor="pptStyleParagraph">Paragraphs</label>
-                                                </div>
-                                                <div className={styles.radioOption}>
-                                                    <input type="radio" id="pptStyleKeypoints" name="pptContentStyle" value="keypoints" checked={pptContentStyle === 'keypoints'} onChange={(e) => setPptContentStyle(e.target.value)} />
-                                                    <label htmlFor="pptStyleKeypoints">Keypoints / Bullets</label>
-                                                </div>
-                                            </div>
-
-                                            <h4 className={styles.modalSectionTitle}>Template Options:</h4>
+                                            {/* PPT Content Style Radio Group Removed */}
+                                            
+                                            <h4 className={styles.modalSectionTitle}>Template & Branding:</h4>
                                             <div className={styles.templateOptionsContainer}>
                                                 <div className={styles.hfCheckboxGroup}>
                                                     <input type="checkbox" id="useDefaultTemplateModal" checked={useDefaultTemplate && !customTemplateFile} onChange={(e) => { setUseDefaultTemplate(e.target.checked); if(e.target.checked) setCustomTemplateFile(null); }} disabled={!!customTemplateFile} />
@@ -787,6 +795,11 @@ const GeneratePPT = () => {
                                                     <label htmlFor="customTemplateFileModal" className={styles.modalLabelInline}>Or Upload Custom Template (.potx, .pptx):</label>
                                                     <input type="file" id="customTemplateFileModal" ref={customTemplateInputRef} accept=".potx,.pptx" onChange={handleCustomTemplateFileChange} className={styles.fileInputSmall} />
                                                     {customTemplateFile && <span className={styles.fileNameSmall}>{customTemplateFile.name}</span>}
+                                                </div>
+                                                <div className={styles.customTemplateUpload} style={{marginTop: '10px'}}>
+                                                    <label htmlFor="customLogoFileModal" className={styles.modalLabelInline}>Upload Custom Logo (PNG, JPG etc.):</label>
+                                                    <input type="file" id="customLogoFileModal" ref={customLogoInputRef} accept="image/*" onChange={handleCustomLogoFileChange} className={styles.fileInputSmall} />
+                                                    {customLogoFile && <span className={styles.fileNameSmall}>{customLogoFile.name}</span>}
                                                 </div>
                                             </div>
 

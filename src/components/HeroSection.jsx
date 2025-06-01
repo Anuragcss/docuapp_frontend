@@ -31,7 +31,7 @@ function HeroSection() {
     } else {
       // Show an alert and navigate to '/signin' if the user is not logged in
       // Consider replacing alert with a more integrated UI notification
-      alert('Please sign in first to continue!');
+     
       navigate('/signin');
     }
   };
