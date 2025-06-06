@@ -40,7 +40,20 @@ const PPTPreview = () => {
         pptx_download_url, 
         pptx_filename, 
         total_slides = 0, 
-        topic 
+        topic,
+        originalInputDetails, // Added for edit functionality
+        actionChoice,         // Added for edit functionality
+        numParagraphs,        // Added for edit functionality
+        includeDateTime,      // Added for edit functionality
+        updateDateTimeAutomatically, // Added for edit functionality
+        fixedDateTime,        // Added for edit functionality
+        includeSlideNumber,   // Added for edit functionality
+        footerTextHF,         // Added for edit functionality
+        dontShowOnTitleSlide, // Added for edit functionality
+        selectedPredefinedTemplate, // Added for edit functionality
+        customLogoFile        // Added for edit functionality
+        // Note: customTemplateFile cannot be directly passed back as a File object through route state.
+        // You might need to re-handle its selection or re-upload if editing.
     } = previewData;
 
     const handleNextSlide = () => {
@@ -69,6 +82,27 @@ const PPTPreview = () => {
         navigate('/generate'); 
     };
 
+    const handleEdit = () => {
+        navigate('/generate', { 
+            state: { 
+                editMode: true, // Indicate that it's an edit session
+                originalInputDetails, // Pass original input details
+                actionChoice,         // Pass selected action
+                numParagraphs,        // Pass number of paragraphs/slides
+                currentSummaryTitle: topic, // Pass the current title
+                includeDateTime,      // Pass header/footer settings
+                updateDateTimeAutomatically, // Pass header/footer settings
+                fixedDateTime,        // Pass header/footer settings
+                includeSlideNumber,   // Pass header/footer settings
+                footerTextHF,         // Pass header/footer settings
+                dontShowOnTitleSlide, // Pass header/footer settings
+                selectedPredefinedTemplate, // Pass selected template
+                // customTemplateFile cannot be passed directly, user will need to re-upload if needed
+                customLogoFile // Pass custom logo file (if string URL, otherwise handle re-upload)
+            } 
+        });
+    };
+
     return (
         <div className={styles.previewContainer}>
             <div className={styles.previewHeader}>
@@ -77,9 +111,12 @@ const PPTPreview = () => {
                     <button onClick={handleGoBack} className={styles.actionButtonSecondary}>
                         &larr; Back to Generate
                     </button>
+                    <button onClick={handleEdit} className={styles.actionButtonSecondary}> {/* Added Edit button */}
+                         Edit Options
+                    </button>
                     {pptx_download_url && (
                         <button onClick={handleDownload} className={styles.actionButton}>
-                            📥 Download PPTX
+                             Download PPTX
                         </button>
                     )}
                 </div>

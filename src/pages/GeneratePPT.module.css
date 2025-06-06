@@ -155,42 +155,58 @@ html, body {
 .modalOverlay {
   position: fixed; top: 0; left: 0;
   width: 100vw; height: 100vh;
-  background: rgba(0, 0, 0, 0.65);
+  background: rgba(0, 0, 0, 0.7); /* Darker overlay */
   display: flex; justify-content: center; align-items: center;
   z-index: 1000;
-  backdrop-filter: blur(4px);
-  animation: fadeIn 0.25s ease-out;
+  backdrop-filter: blur(6px); /* Stronger blur */
+  animation: fadeIn 0.3s ease-out;
   padding: 20px;
   box-sizing: border-box;
 }
 
 .modalContent {
-  background: #ffffff;
-  padding: 30px 35px;
-  border-radius: 10px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-  max-width: 550px; /* Default */
+  background: linear-gradient(145deg, #ffffff 0%, #f0f4f8 100%); /* Elegant gradient background */
+  padding: 30px 40px; /* Increased padding */
+  border-radius: 15px; /* More rounded corners */
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25); /* Deeper shadow */
+  max-width: 600px; /* Slightly wider default */
   width: 100%;
   text-align: left;
-  animation: slideUpFadeIn 0.3s ease-out;
+  animation: slideUpFadeIn 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); /* Smoother animation */
   max-height: 90vh;
   overflow-y: auto;
   box-sizing: border-box;
+  border: 1px solid rgba(200, 200, 200, 0.3); /* Subtle border */
 }
 .modalContentLarge { max-width: 800px; }
 
 .modalContent::-webkit-scrollbar { width: 8px; }
-.modalContent::-webkit-scrollbar-thumb { background-color: #bdc3c7; border-radius: 4px; }
+.modalContent::-webkit-scrollbar-thumb { background-color: #aeb6bf; border-radius: 4px; }
+.modalContent::-webkit-scrollbar-track { background: #e9ecef; }
+
 
 .modalTitle {
     margin-top: 0;
-    margin-bottom: 25px;
-    font-size: 1.7rem;
-    color: #2c3e50;
-    font-weight: 600;
+    margin-bottom: 30px; /* More space below title */
+    font-size: 2rem; /* Larger title */
+    color: #1a2a6c; /* Deep blue color */
+    font-weight: 700; /* Bolder */
     text-align: center;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #e0e0e0; /* Thicker border */
+    position: relative;
+    letter-spacing: 0.5px;
+}
+.modalTitle::after { /* Decorative line below title */
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 4px;
+    background: linear-gradient(90deg, #007bff, #0056b3); /* Gradient underline */
+    border-radius: 2px;
 }
 
 .fileNameDisplay {
@@ -218,31 +234,36 @@ html, body {
 
 .choiceButton {
     flex: 1;
-    padding: 12px 20px;
-    font-size: 1rem;
+    padding: 14px 25px; /* Larger padding */
+    font-size: 1.05rem; /* Slightly larger font */
     font-weight: 600;
-    border-radius: 8px;
+    border-radius: 10px; /* More rounded */
     cursor: pointer;
-    transition: all 0.2s ease;
-    border: 1px solid #007bff;
-    background-color: #007bff;
+    transition: all 0.3s ease;
+    border: none; /* Remove default border */
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); /* Blue gradient */
     color: white;
     min-width: 180px;
+    box-shadow: 0 4px 10px rgba(0, 123, 255, 0.2); /* Subtle shadow */
 }
 .choiceButton:hover {
-    background-color: #0056b3;
-    border-color: #0056b3;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    background: linear-gradient(135deg, #0056b3 0%, #004085 100%); /* Darker gradient on hover */
+    transform: translateY(-3px); /* Lift effect */
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2); /* More prominent shadow */
 }
+.choiceButton:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
 
 .modalLabel, .modalLabelInline {
     display: block;
     margin-top: 18px;
     margin-bottom: 6px;
     font-weight: 500;
-    color: #495057;
-    font-size: 0.95rem;
+    color: #343a40; /* Darker, more professional label color */
+    font-size: 1rem; /* Slightly larger labels */
 }
 .modalLabelInline {
     margin-right: 10px;
@@ -256,16 +277,17 @@ html, body {
   padding: 12px 15px;
   margin-bottom: 15px;
   border: 1px solid #ced4da;
-  border-radius: 6px;
+  border-radius: 8px; /* More rounded inputs */
   font-size: 1rem;
   transition: border-color 0.2s, box-shadow 0.2s;
   box-sizing: border-box;
-  background-color: #fff;
+  background-color: #f8f9fa; /* Light background for inputs */
 }
 .textInput:focus, .numberInput:focus, .urlInput:focus, .textArea:focus {
   border-color: #007bff;
   box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
   outline: none;
+  background-color: #ffffff; /* White background on focus */
 }
 .numberInput { max-width: 120px; display: inline-block; }
 .textArea { height: 120px; resize: vertical; }
@@ -301,7 +323,7 @@ html, body {
 .hfCheckboxGroup { /* Container for checkbox and label like "Slide number" */
     display: flex;
     align-items: center;
-    gap: 8px; 
+    gap: 8px;
     padding: 8px 0; /* Add some vertical padding to the group */
 }
 .hfCheckboxGroup input[type="checkbox"] {
@@ -313,26 +335,93 @@ html, body {
 /* --- END: Styles for larger PPT Footer Input and Slide Number option --- */
 
 
-.fileInputSmall {
-    font-size: 0.9rem;
-    padding: 5px;
-    max-width: 250px; 
+/* Ensure file inputs and labels are well-aligned and sized */
+.customTemplateUpload, .customLogoUpload {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    flex-wrap: wrap; /* Allow wrapping on small screens */
+    /* Added some visual padding to the container for better spacing */
+    padding: 5px 0;
 }
+
+.modalLabelInline {
+    font-size: 0.95rem; /* Slightly larger for better readability */
+    margin-right: 15px; /* More space from the button */
+    white-space: nowrap;
+    color: #343a40; /* Darker, more professional label color */
+    flex-shrink: 0;
+    font-weight: 500;
+}
+
+.fileInputSmall {
+    /* Make the native input's main field transparent/invisible,
+       so only the styled ::file-selector-button and fileNameSmall are prominent. */
+    background-color: transparent;
+    border: none;
+    padding: 0; /* Remove padding from the input itself */
+    flex-grow: 1;
+    min-width: 150px;
+    /* Important for aligning the button and text within the native input */
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; /* Align content to the start */
+    height: 40px; /* Give it a fixed height for consistent alignment */
+    overflow: hidden; /* Hide any overflow from native rendering */
+}
+
+/* Styling for the actual "Choose File" button part within the input */
+.fileInputSmall::-webkit-file-upload-button, /* For WebKit browsers (Chrome, Safari, Edge) */
+.fileInputSmall::file-selector-button { /* Standard property */
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); /* Blue gradient */
+    color: white;
+    padding: 10px 20px; /* Padding for the button part */
+    border: none; /* Remove button border */
+    border-radius: 8px; /* More rounded corners for the button */
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.95rem; /* Slightly larger font size for the button text */
+    font-weight: 600; /* Bolder text */
+    margin-right: 15px; /* Space between button and file name */
+    box-shadow: 0 4px 10px rgba(0, 123, 255, 0.2); /* Subtle shadow for the button */
+    text-shadow: 0 1px 2px rgba(0,0,0,0.1); /* Subtle text shadow */
+    flex-shrink: 0; /* Prevent button from shrinking */
+}
+
+.fileInputSmall::-webkit-file-upload-button:hover,
+.fileInputSmall::file-selector-button:hover {
+    background: linear-gradient(135deg, #0056b3 0%, #004085 100%); /* Darker gradient on hover */
+    box-shadow: 0 6px 15px rgba(0, 123, 255, 0.3); /* More prominent shadow on hover */
+    transform: translateY(-2px); /* Lift effect on hover */
+}
+.fileInputSmall::-webkit-file-upload-button:active,
+.fileInputSmall::file-selector-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+
 .fileNameSmall {
-    font-size: 0.85rem;
-    color: #6c757d;
-    margin-left: 10px;
-    font-style: italic;
+    font-size: 0.95rem; /* Match label and button font size */
+    color: #343a40; /* Darker color for professionalism */
+    margin-left: 0; /* No margin here, as it's handled by button's margin-right */
+    font-style: normal; /* Ensure no italic */
+    font-weight: 400; /* Regular weight */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-grow: 1; /* Allow filename to take available space */
+    padding-right: 10px; /* Add some padding on the right */
 }
 
 
 .modalSectionTitle {
     margin-top: 25px;
     margin-bottom: 15px;
-    font-size: 1.1rem;
+    font-size: 1.25rem; /* Slightly larger section title */
     font-weight: 600;
-    color: #0056b3;
-    padding-bottom: 8px;
+    color: #1a2a6c; /* Match modal title color */
+    padding-bottom: 10px;
     border-bottom: 1px solid #e0e0e0;
 }
 
@@ -346,7 +435,7 @@ html, body {
 .radioOption { /* Already covered by .hfCheckboxGroup generic styling if structure is similar */
     display: flex;
     align-items: center;
-    gap: 8px; 
+    gap: 8px;
 }
 .radioOption input[type="radio"] { /* Already covered by .hfCheckboxGroup generic styling if structure is similar */
     margin: 0;
@@ -371,7 +460,7 @@ html, body {
 .hfOptionsGrid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 20px 30px; 
+    gap: 20px 30px;
     margin-top: 10px;
 }
 .hfColumn { display: flex; flex-direction: column; gap: 12px; }
@@ -388,9 +477,9 @@ html, body {
 .hfFixedDateInput:disabled { background-color: #e9ecef; cursor: not-allowed; }
 
 .hfInputGroup { /* Container for label and input, e.g., PPT Footer Text */
-    display: flex; 
-    align-items: center; 
-    gap: 10px; 
+    display: flex;
+    align-items: center;
+    gap: 10px;
     margin: 5px 0;
 }
 
@@ -398,52 +487,56 @@ html, body {
 .modalButtonContainer {
   display: flex;
   justify-content: flex-end;
-  gap: 15px;
-  margin-top: 30px;
-  padding-top: 20px;
+  gap: 20px; /* Increased gap */
+  margin-top: 40px; /* More space above buttons */
+  padding-top: 25px; /* More padding */
   border-top: 1px solid #e9ecef;
 }
 
 .uploadButton, .closeButton, .actionButton, .actionButtonSecondary {
   color: white;
-  font-weight: 500;
+  font-weight: 600; /* Bolder text */
   border: none;
-  padding: 10px 22px;
-  border-radius: 6px;
+  padding: 12px 28px; /* Larger buttons */
+  border-radius: 8px; /* More rounded */
   cursor: pointer;
-  transition: all 0.2s ease-in-out;
-  font-size: 0.95rem;
-  letter-spacing: 0.5px;
+  transition: all 0.3s ease; /* Smoother transition */
+  font-size: 1rem; /* Slightly larger font */
+  letter-spacing: 0.7px; /* More spaced letters */
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1); /* Consistent shadow */
 }
 .uploadButton:hover, .actionButton:hover, .actionButtonSecondary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  transform: translateY(-3px); /* Lift effect */
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2); /* More prominent shadow */
 }
 .uploadButton:active, .actionButton:active, .actionButtonSecondary:active {
   transform: translateY(0px);
-  box-shadow: none;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
 .uploadButton, .actionButton {
-  background-color: #007bff;
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); /* Blue gradient */
 }
-.uploadButton:hover, .actionButton:hover { background-color: #0056b3; }
+.uploadButton:hover, .actionButton:hover { background: linear-gradient(135deg, #0056b3 0%, #004085 100%); }
 
 .actionButtonSecondary {
-    background-color: #6c757d;
+    background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%); /* Grey gradient */
 }
-.actionButtonSecondary:hover { background-color: #545b62; }
+.actionButtonSecondary:hover { background: linear-gradient(135deg, #5a6268 0%, #495057 100%); }
 
 
-.closeButton { background-color: #dc3545; }
-.closeButton:hover { background-color: #b02a37; }
+.closeButton {
+    background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%); /* Red gradient */
+}
+.closeButton:hover { background: linear-gradient(135deg, #b02a37 0%, #8c1c27 100%); }
 
-.uploadButton:disabled, .actionButton:disabled, .actionButtonSecondary:disabled {
-    background-color: #adb5bd;
+.uploadButton:disabled, .actionButton:disabled, .actionButtonSecondary:disabled, .closeButton:disabled {
+    background: #adb5bd; /* Lighter grey for disabled */
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
-    opacity: 0.7;
+    opacity: 0.6; /* More opaque for disabled */
+    color: #f8f9fa; /* Lighter text for disabled */
 }
 
 
@@ -549,11 +642,11 @@ html, body {
 
 /* Add this to your GeneratePPT.module.css */
 .hintText {
-    font-size: 0.85rem;
-    color: #0056b3; /* Or #6c757d for a more subtle look */
-    margin-left: 8px;
+    display: block; /* Make hint text appear on new line */
+    font-size: 0.8em;
+    color: #6c757d; /* Bootstrap's text-muted color */
+    margin-top: 2px;
     font-style: italic;
-    font-weight: normal;
 }
 
 /* Ensure modalLabel can accommodate this without breaking layout if it's a flex container */
@@ -578,4 +671,208 @@ html, body {
   90% { opacity: 1; transform: translate(-50%, 0); }
   100% { opacity: 0; transform: translate(-50%, 20px); }
 }
+
+/* Add or update these styles in your GeneratePPT.module.css */
+
+.templateOptionsContainer {
+  margin-bottom: 20px;
+  padding: 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: #f8f9fa; /* Light background for the section */
+}
+
+.selectedTemplateInfo {
+  margin-top: 10px; /* Space above the info text */
+  margin-bottom: 15px; /* Space below the info text */
+  text-align: center;
+  font-size: 0.9em;
+  padding: 8px 12px;
+  background-color: #e7f3ff; /* Light blue background */
+  border: 1px solid #b3d7ff; /* Blue border */
+  border-radius: 4px;
+  color: #004085; /* Dark blue text */
+}
+
+.fullWidthButton {
+  width: 100%;
+  padding: 10px 15px;
+  font-size: 1rem;
+  margin-bottom: 10px !important;
+  background-color: #6c757d; /* A neutral button color */
+  color: white;
+  border: none;
+  border-radius: 5px;
+}
+.fullWidthButton:hover {
+  background-color: #5a6268;
+}
+
+
+/* Styles for the new Template Choice Modal */
+.templateChoiceModal {
+  max-width: 700px; /* Adjusted width */
+  width: 90%;
+}
+
+.templateGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); /* Responsive grid */
+  gap: 15px; /* Spacing between cards */
+  padding: 15px 0;
+  max-height: 60vh;
+  overflow-y: auto;
+  margin-bottom: 15px;
+}
+
+.templateCard {
+  border: 2px solid #ddd; /* Slightly thicker border */
+  border-radius: 8px;
+  padding: 0;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  background-color: #fff;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.templateCard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  border-color: #007bff;
+}
+
+.templateCard.selected {
+  border: 3px solid #007bff;
+  box-shadow: 0 0 12px rgba(0,123,255,0.5);
+  transform: translateY(0); /* Reset hover transform */
+}
+
+.templatePreviewPlaceholder {
+  width: 100%;
+  height: 90px;
+  background-color: #e9ecef;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85em; /* Adjusted font size */
+  color: #6c757d;
+  background-size: cover;
+  background-position: center;
+  border-bottom: 1px solid #dee2e6;
+  padding: 5px; /* Padding inside placeholder for text */
+  box-sizing: border-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.templateName {
+  font-size: 0.8em; /* Adjusted font size */
+  font-weight: 500;
+  color: #343a40;
+  padding: 10px 5px 5px 5px; /* Adjusted padding */
+  width: 100%;
+  box-sizing: border-box;
+  line-height: 1.3;
+  min-height: 30px; /* Ensure space for name */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.selectedTextMarker {
+  color: #007bff;
+  font-weight: bold;
+  font-size: 0.75em; /* Adjusted font size */
+  padding-bottom: 8px;
+}
+
+.templateChoiceModal .modalButtonContainer {
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
+
+/* Ensure file inputs and labels are well-aligned and sized */
+.customTemplateUpload, .customLogoUpload {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    flex-wrap: wrap; /* Allow wrapping on small screens */
+}
+
+.modalLabelInline {
+    font-size: 0.9rem;
+    margin-right: 8px;
+    white-space: nowrap;
+    color: #495057;
+    flex-shrink: 0; /* Prevent label from shrinking too much */
+}
+
+.fileInputSmall {
+    font-size: 0.85rem;
+    /* max-width: calc(100% - 200px); Let flexbox handle width */
+    flex-grow: 1; /* Allow input to take available space */
+    min-width: 150px; /* Minimum width for the input */
+}
+.fileNameSmall {
+    font-size: 0.8rem;
+    color: #555;
+    margin-left: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 1; /* Allow filename to shrink and show ellipsis */
+}
+
+.hintText {
+    display: block; /* Make hint text appear on new line */
+    font-size: 0.8em;
+    color: #6c757d; /* Bootstrap's text-muted color */
+    margin-top: 2px;
+    font-style: italic;
+}
+
+.choiceButton { /* General style for choice buttons, can be more specific */
+    margin: 5px;
+    padding: 10px 15px;
+    font-size: 1rem;
+    cursor: pointer;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    background-color: #1f4061;
+}
+.choiceButton:hover {
+    background-color: #e2e6ea;
+}
+
+.formSelectSmall {
+  width: auto;
+  min-width: 140px;
+  padding: 10px 14px;
+  font-size: 0.95rem;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  background-color: #f8f9fa;
+  color: #212529;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.formSelectSmall:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  outline: none;
+}
+
+.formSelectSmall:hover {
+  border-color: #0056b3;
+}
+
 

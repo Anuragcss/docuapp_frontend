@@ -1,11 +1,19 @@
 /* Updated and Enhanced MyWork.css */
+/* Enables full-page scroll layout with sidebar */
+.mywork-page-layout {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
 
 .mywork-container {
+  flex: 1;
+  overflow-y: auto;
   padding: 2.5rem 3rem;
   background: linear-gradient(to bottom, #f9fbfc, #eef2f5);
-  min-height: 100vh;
   box-sizing: border-box;
 }
+
 
 h2 {
   text-align: center;
@@ -128,18 +136,19 @@ h2 {
 .mywork-download-button {
   margin-top: auto;
   text-align: center;
-  background-color: #27ae60;
+  background-color: #242260;
   color: white;
   padding: 0.6rem 1rem;
   border-radius: 5px;
   text-decoration: none;
   font-weight: 600;
   font-size: 0.95rem;
+  width: 120px; 
   transition: background-color 0.2s ease;
 }
 
 .mywork-download-button:hover {
-  background-color: #1e8449;
+  background-color: #231879;
 }
 
 /* Spinner */
@@ -174,4 +183,95 @@ h2 {
   .mywork-card-content {
     padding: 1rem;
   }
+}
+
+.mywork-action-button {
+  padding: 0.5rem 1rem;
+  background-color: #34495e;
+  color: white;
+  font-weight: 500;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.mywork-action-button:hover {
+  background-color: #2c3e50;
+}
+
+.confirm-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.confirm-box {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.25);
+  max-width: 400px;
+  text-align: center;
+}
+
+.modal-actions {
+  margin-top: 1rem;
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.mywork-icon-button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.mywork-icon-button:hover {
+  transform: scale(1.1);
+}
+
+.mywork-icon-img {
+  width: 35px;
+  height: 30px;
+}
+
+
+.mywork-button-row {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: auto;
+  align-items: center;
+}
+
+.mywork-delete-button {
+  background-color: #c0392b;
+  color: white;
+  padding: 0.6rem 1rem;
+  border-radius: 5px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  border: none;
+  cursor: pointer;
+  width: 140px; 
+  transition: background-color 0.2s ease;
+}
+
+.mywork-delete-button:hover {
+  background-color: #a93226;
+}
+
+.mywork-share-icons {
+  display: flex;
+  gap: 80px;
+  margin-top: 0.8rem;
 }

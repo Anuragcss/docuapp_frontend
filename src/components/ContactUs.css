@@ -2,20 +2,22 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 40px;
-    background: #eef3fb;
+    padding: 1px;
+    background: linear-gradient(to bottom right, #a5d2dc, #f5f5ff);
     height: 100vh;
-  }
-  
-  .contact-box {
+}
+
+.contact-box {
     display: flex;
     width: 80%;
     max-width: 1000px;
     background-color: white;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
-  }
-  
-  .contact-left {
+    border-radius: 10px; /* Added for a softer look */
+    overflow: hidden; /* Ensures shadow and border-radius work correctly */
+}
+
+.contact-left {
     flex: 1;
     background-color: #3e4e5e;
     color: white;
@@ -24,55 +26,88 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-  }
-  
-  .contact-image {
+    text-align: center; /* Ensure text is centered */
+}
+
+.contact-image {
     width: 80px;
     margin-bottom: 20px;
-  }
-  
-  .contact-left p {
+}
+
+.contact-left p {
     text-align: center;
     font-size: 16px;
     line-height: 1.6;
-  }
-  
-  .contact-right {
+}
+
+.contact-right {
     flex: 2;
     padding: 40px;
-  }
-  
-  .contact-right h2 {
-    margin-bottom: 20px;
+    display: flex; /* Use flexbox for better form alignment */
+    flex-direction: column;
+    justify-content: center; /* Center content vertically if space allows */
+}
+
+.contact-right h2 {
+    margin-bottom: 25px; /* Increased space below heading */
     color: #333;
-  }
-  
-  .contact-right form {
+    text-align: center; /* Center the heading */
+    font-size: 28px; /* Slightly larger heading */
+}
+
+.contact-right form {
     display: flex;
     flex-direction: column;
-  }
-  
-  .contact-right input,
-  .contact-right textarea {
-    margin-bottom: 20px;
+    width: 100%; /* Ensure form takes full width of its container */
+    max-width: 400px; /* Optional: Constrain form width for better aesthetics */
+    margin: 0 auto; /* Center the form within contact-right */
+}
+
+.contact-right input,
+.contact-right textarea {
+    margin-bottom: 25px; /* Increased space below each input/textarea */
     padding: 15px;
-    border: none;
+    border: 1px solid #dcdcdc; /* Added a subtle border */
     background-color: #f0f5fc;
-    border-radius: 4px;
+    border-radius: 8px; /* More rounded corners */
     font-size: 16px;
-  }
-  
-  .contact-right button {
-    padding: 12px;
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+    transition: border-color 0.3s ease, box-shadow 0.3s ease; /* Smooth transition for focus */
+}
+
+.contact-right input:focus,
+.contact-right textarea:focus {
+    border-color: #0288d1; /* Highlight border on focus */
+    box-shadow: 0 0 0 3px rgba(2, 136, 209, 0.2); /* Add a subtle glow on focus */
+    outline: none; /* Remove default outline */
+}
+
+.contact-right textarea {
+    min-height: 120px; /* Ensure a decent height for the message box */
+    resize: vertical; /* Allow vertical resizing only */
+}
+
+.contact-right button {
+    padding: 15px; /* Increased padding for a larger button */
     background-color: #0288d1;
     color: white;
     border: none;
-    font-size: 16px;
-    border-radius: 4px;
+    font-size: 18px; /* Larger font size for the button */
+    border-radius: 8px; /* More rounded button */
     cursor: pointer;
-  }
-  
-  .contact-right button:hover {
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease; /* Smooth transitions */
+    font-weight: 600; /* Bolder text */
+    letter-spacing: 0.5px; /* Slightly spaced out letters */
+    margin-top: 15px; /* Added space above the button */
+}
+
+.contact-right button:hover {
     background-color: #0277bd;
-  }
-  
+    transform: translateY(-2px); /* Slight lift effect on hover */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Shadow on hover */
+}
+
+.contact-right button:active {
+    transform: translateY(0); /* Reset on click */
+    box-shadow: none; /* Remove shadow on click */
+}

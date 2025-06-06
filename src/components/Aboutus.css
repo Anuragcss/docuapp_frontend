@@ -1,7 +1,7 @@
 .about-container {
     font-family: 'Arial', sans-serif;
     padding: 2rem;
-    background: #eef3fb;
+    background: linear-gradient(to bottom right, #a5d2dc, #f5f5ff);
     color: #111;
     min-height: 100vh;
   }

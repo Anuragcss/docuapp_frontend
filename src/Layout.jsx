@@ -12,7 +12,6 @@ import HeroSection from './components/HeroSection';
 import SignUp from './pages/SignUp';
 import SignIn from './pages/SignIn';
 import GeneratePPT from './pages/GeneratePPT';
-import TemplatePicker from './pages/TemplatePicker';
 import Upload from './pages/Upload';
 import MyWork from './pages/MyWork';
 import ContactUs from './components/ContactUs';
@@ -22,7 +21,7 @@ import Inputpage from './pages/Inputpage';
 import PPTPreview from './pages/PPTPreview'; 
 import ForgotPassword from './pages/ForgotPassword'; // Adjust path
 import ResetPassword from './pages/ResetPassword'; 
-
+import Settings from './pages/Settings'; // Adjust path
 
 
 const isAuthenticated = () => {
@@ -53,15 +52,17 @@ const Layout = () => {
         <Route path="/signup" element={<SignUp />} />
         <Route path="/signin" element={<SignIn />} />
         <Route path="/generate" element={<GeneratePPT />} />
-        <Route path="/template" element={<TemplatePicker />} />
+        
         <Route path="/upload" element={<Upload />} />
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/contactus" element={<ContactUs />} />
         <Route path="/aboutus" element={<Aboutus />} />
         <Route path="/input" element={<Inputpage />} />
-         <Route path="/preview-ppt" element={<PPTPreview />} /> 
-          <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/preview-ppt" element={<PPTPreview />} /> 
+        <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
+        <Route path ="/settings" element={<Settings />} />
+
        
         <Route
           path="/my-work"

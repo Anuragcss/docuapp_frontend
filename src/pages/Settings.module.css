@@ -1,0 +1,358 @@
+/* src/pages/Settings.module.css */
+
+/* Added: Ensure html, body, and root element allow full height for 100vh to work reliably */
+:global(html), :global(body), :global(#root) { /* :global() is for CSS Modules to target global selectors */
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+/* Applying box-sizing to main elements for more predictable layouts */
+.settingsPage,
+.settingsWrapper,
+.settingsGrid,
+.settingsCard,
+.formInput,
+.formSelect,
+.actionButton {
+    box-sizing: border-box;
+}
+
+.settingsPage {
+    display: flex;
+    height: 100vh; 
+    background-color: #f7f9fc;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    overflow: hidden; 
+}
+
+.settingsWrapper {
+    flex-grow: 1;
+    padding: 1.5rem 2rem;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto; 
+    min-height: 0; 
+}
+
+.settingsWrapper::-webkit-scrollbar {
+    width: 8px;
+}
+
+.settingsWrapper::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.settingsWrapper::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 10px;
+}
+
+.settingsWrapper::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
+}
+
+.settingsHeader {
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 1rem;
+}
+
+.settingsHeader h1 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 0.3rem;
+}
+
+.settingsHeader p {
+    font-size: 1rem;
+    color: #576574;
+}
+
+.settingsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    gap: 1.5rem;
+    /* flex-grow: 1; <--- THIS LINE WAS REMOVED TO FIX THE BUTTON VISIBILITY */
+}
+
+.settingsCard {
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
+    padding: 1.5rem;
+    border: 1px solid #e8eaf6;
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.settingsCard:hover {
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.07);
+    transform: translateY(-4px);
+}
+
+.settingsCardTitle {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #34495e;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #eee;
+}
+
+.settingItem {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1rem;
+}
+
+.settingItem label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #555;
+    margin-bottom: 0.4rem;
+}
+
+.formInput,
+.formSelect {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #dcdfe6;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    color: #333;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    background-color: #fdfdfd;
+}
+
+.formInput:focus,
+.formSelect:focus {
+    outline: none;
+    border-color: #4a90e2;
+    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+.formInput::placeholder {
+    color: #aab2bd;
+}
+
+.checkboxItem {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.checkboxItem:hover {
+    background-color: #f4f6f8;
+}
+
+.checkboxItem input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: #4a90e2;
+}
+
+.fileInput {
+    width: 100%;
+    font-size: 0.9rem;
+    color: #555;
+    border: 1px solid #dcdfe6;
+    border-radius: 6px;
+    background-color: #fdfdfd;
+    position: relative;
+    cursor: pointer;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    line-height: 1.4;
+    padding: 0;
+}
+
+.fileInput::file-selector-button {
+    padding: 8px 15px;
+    margin-right: 10px;
+    border: none;
+    background-color: #4a90e2;
+    color: white;
+    font-weight: 500;
+    font-size: 0.9rem;
+    cursor: pointer;
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+    border-right: 1px solid #dcdfe6;
+    transition: background-color 0.3s ease;
+}
+
+.fileInput::file-selector-button:hover {
+    background-color: #357abd;
+}
+
+.fileInput:focus-within {
+    outline: none;
+    border-color: #4a90e2;
+    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+.fileName {
+    font-style: italic;
+    color: #4a90e2;
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+    display: block;
+    padding-left: 5px;
+}
+
+.actionsContainer {
+    margin-top: 1.5rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e0e0e0;
+}
+
+.actionButton {
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.saveButton {
+    background-color: #4a90e2;
+    color: white;
+}
+.saveButton:hover {
+    background-color: #357abd;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    transform: translateY(-1px);
+}
+.saveButton:active {
+    background-color: #2a6ca8;
+    transform: translateY(0px);
+}
+
+.backButton {
+    background-color: #e0e0e0;
+    color: #333;
+}
+.backButton:hover {
+    background-color: #c7c7c7;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.07);
+    transform: translateY(-1px);
+}
+.backButton:active {
+    background-color: #b3b3b3;
+    transform: translateY(0px);
+}
+
+.successPopup {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: #2ecc71;
+    color: white;
+    padding: 0.8rem 1.2rem;
+    border-radius: 6px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    z-index: 1000;
+    font-size: 0.95rem;
+    animation: fadeInDown 0.5s ease, fadeOutUp 0.5s ease 2.5s forwards;
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeOutUp {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+}
+
+.cardActions {
+    margin-top: auto;
+    padding-top: 1rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+}
+
+.dividerHr {
+    border: none;
+    border-top: 1px solid #e0e0e0;
+    margin: 1rem 0;
+}
+
+.subHeader {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #4A5568; 
+    margin-top: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.radioGroup {
+    display: flex;
+    gap: 1rem; 
+    align-items: center;
+}
+
+.radioGroup label {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem; 
+    font-size: 0.9rem;
+    font-weight: normal;
+    margin-bottom: 0; 
+}
+
+.radioGroup input[type="radio"] {
+    margin-right: 4px; 
+    accent-color: #4a90e2;
+}
+
+.settingsWrapper {
+    flex-grow: 1;
+    padding: 1.5rem 2rem;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    position: relative; /* required for absolute child if needed */
+}
+
+.actionsContainer {
+    position: sticky;
+    bottom: 0;
+    background: #f7f9fc; /* match page background */
+    padding: 1rem 0 1.5rem;
+    display: flex;
+    justify-content: flex-end;
+    z-index: 10;
+    border-top: 1px solid #ddd;
+    margin-top: auto;
+}
