@@ -1,6 +1,8 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import styles from './GeneratePPT.module.css';
+
+const API_BASE_URL = "http://localhost:8000";
 
 const GeneratePPT = () => {
     const [uploadedFiles, setUploadedFiles] = useState([]);
@@ -43,7 +45,7 @@ const GeneratePPT = () => {
     const [includeSlideNumber, setIncludeSlideNumber] = useState(false);
     const [footerTextHF, setFooterTextHF] = useState('');
     const [dontShowOnTitleSlide, setDontShowOnTitleSlide] = useState(true);
-    const [pptLogoPosition, setPptLogoPosition] = useState('top_left'); // Added
+    const [pptLogoPosition, setPptLogoPosition] = useState('top_left');
     const [defaultPptLogoNameFromSettings, setDefaultPptLogoNameFromSettings] = useState(null); // Stores filename from settings
     const [defaultPptCustomTemplateNameFromSettings, setDefaultPptCustomTemplateNameFromSettings] = useState(null);
 
@@ -73,8 +75,7 @@ const GeneratePPT = () => {
         footerText: '',
         includePageNumber: false,
         headerText: '',
-        headerPosition: 'left', // Added
-        // defaultSummaryLogoNameFromSettings: null, // If summary logos were to be handled similarly
+        headerPosition: 'left',
     });
 
 
@@ -97,58 +98,98 @@ const GeneratePPT = () => {
         return `${year}-${month}-${day}`;
     };
     
-    const applyDefaultSettings = () => {
-        const savedSettingsString = localStorage.getItem('appSettings');
-        if (savedSettingsString) {
-            try {
-                const defaults = JSON.parse(savedSettingsString);
+    const loadUserSettings = useCallback(async () => {
+        const token = localStorage.getItem('authToken');
+        // Always set some baseline defaults in case of error or no token
+        const hardcodedPptDefaults = () => {
+            setIncludeDateTime(false);
+            setUpdateDateTimeAutomatically(true);
+            setIncludeSlideNumber(false);
+            setFooterTextHF('');
+            setDontShowOnTitleSlide(true);
+            setPptLogoPosition('top_left');
+            setDefaultPptLogoNameFromSettings(null);
+            setDefaultPptCustomTemplateNameFromSettings(null);
+            setSelectedPredefinedTemplate(availableTemplates.length > 0 ? availableTemplates[0] : null);
+            setCustomTemplateFile(null);
+            if (customTemplateInputRef.current) customTemplateInputRef.current.value = null;
+            setCustomLogoFile(null);
+            if (customLogoInputRef.current) customLogoInputRef.current.value = null;
+        };
+        const hardcodedSummaryDefaults = () => {
+             setSummaryDownloadOptions({
+                footerText: '',
+                includePageNumber: false,
+                headerText: '',
+                headerPosition: 'left',
+            });
+        };
 
-                if (defaults.ppt) {
-                    setIncludeDateTime(defaults.ppt.includeDate ?? false);
-                    setIncludeSlideNumber(defaults.ppt.includePageNumber ?? false);
-                    setFooterTextHF(defaults.ppt.footerText ?? '');
-                    setPptLogoPosition(defaults.ppt.logoPosition ?? 'top_left');
-                    setDefaultPptLogoNameFromSettings(defaults.ppt.defaultLogo ?? null);
-                    setDefaultPptCustomTemplateNameFromSettings(defaults.ppt.customTemplate ?? null);
-
-
-                    const predefinedTemplate = availableTemplates.find(t => t.id === defaults.ppt.templateId);
-                    setSelectedPredefinedTemplate(predefinedTemplate || (availableTemplates.length > 0 ? availableTemplates[0] : null) );
-                    // customTemplateFile and customLogoFile are for new uploads, so not set from string names here
-                } else { // Fallback if defaults.ppt is not defined
-                    setSelectedPredefinedTemplate(availableTemplates.length > 0 ? availableTemplates[0] : null);
-                }
-
-                if (defaults.summary) {
-                    setSummaryDownloadOptions({
-                        footerText: defaults.summary.footerText ?? '',
-                        includePageNumber: defaults.summary.includePageNumber ?? false,
-                        headerText: defaults.summary.headerText ?? '',
-                        headerPosition: defaults.summary.headerPosition ?? 'left',
-                        // defaultSummaryLogoNameFromSettings: defaults.summary.defaultLogo ?? null, // For future if summary default logo is used
-                    });
-                }
-            } catch (error) {
-                console.error("Error applying default settings:", error);
-                 // Fallback to ensure selectedPredefinedTemplate has a value
-                if (!selectedPredefinedTemplate && availableTemplates.length > 0) {
-                    setSelectedPredefinedTemplate(availableTemplates[0]);
-                }
-            }
-        } else {
-             // Fallback to ensure selectedPredefinedTemplate has a value if no settings saved
-            if (!selectedPredefinedTemplate && availableTemplates.length > 0) {
-                setSelectedPredefinedTemplate(availableTemplates[0]);
-            }
+        if (!token) {
+            console.log("No auth token found, using hardcoded app defaults.");
+            hardcodedPptDefaults();
+            hardcodedSummaryDefaults();
+            setFixedDateTime(getCurrentDateInputFormat());
+            return;
         }
-        setFixedDateTime(getCurrentDateInputFormat()); // Always set current date for fixed option initially
-    };
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/settings/me`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (!response.ok) {
+                if (response.status === 401) localStorage.removeItem('authToken');
+                throw new Error(`Failed to fetch settings: ${response.status}`);
+            }
+
+            const settings = await response.json();
+
+            // Apply fetched PPT settings
+            setIncludeDateTime(settings.ppt_include_date ?? false);
+            setIncludeSlideNumber(settings.ppt_include_page_number ?? false);
+            setFooterTextHF(settings.ppt_footer_text ?? '');
+            setPptLogoPosition(settings.ppt_logo_position ?? 'top_left');
+            
+            if (settings.default_ppt_logo_url) {
+                setDefaultPptLogoNameFromSettings(settings.default_ppt_logo_url.split('/').pop());
+            } else {
+                setDefaultPptLogoNameFromSettings(null);
+            }
+            
+            const predefinedTemplate = availableTemplates.find(t => t.id === settings.ppt_template_id);
+            setSelectedPredefinedTemplate(predefinedTemplate || (availableTemplates.length > 0 ? availableTemplates[0] : null));
+            
+            // Apply fetched Summary settings for DOCX downloads
+            setSummaryDownloadOptions({
+                footerText: settings.summary_footer_text ?? '',
+                includePageNumber: settings.summary_include_page_number ?? false,
+                headerText: settings.summary_header_text ?? '',
+                headerPosition: settings.summary_header_position ?? 'left',
+            });
+
+        } catch (error) {
+            console.error("Could not fetch user settings, applying hardcoded defaults.", error);
+            hardcodedPptDefaults();
+            hardcodedSummaryDefaults();
+        } finally {
+            // This should always be set regardless of settings
+            setFixedDateTime(getCurrentDateInputFormat());
+            // Clear any lingering file inputs
+            setCustomTemplateFile(null);
+            if (customTemplateInputRef.current) customTemplateInputRef.current.value = null;
+            setCustomLogoFile(null);
+            if (customLogoInputRef.current) customLogoInputRef.current.value = null;
+        }
+    }, [availableTemplates]);
+
 
     useEffect(() => {
-        applyDefaultSettings(); // Load defaults on initial mount
+        loadUserSettings(); // Load user's defaults on initial mount
 
         if (location.state?.editMode) {
             const editState = location.state;
+            // This logic will override the fetched defaults with the specific state from the previous page for editing
             setOriginalInputDetails(editState.originalInputDetails);
             setCurrentSummaryTitle(editState.topic);
             setActionChoice(editState.actionChoice);
@@ -164,28 +205,13 @@ const GeneratePPT = () => {
             if (editState.selectedPredefinedTemplate) {
                 setSelectedPredefinedTemplate(editState.selectedPredefinedTemplate);
                 setCustomTemplateFile(null);
-            } else {
-                 // If coming to edit and no specific predefined template was set, apply default from settings
-                const savedSettingsString = localStorage.getItem('appSettings');
-                if (savedSettingsString) {
-                    const defaults = JSON.parse(savedSettingsString);
-                    if (defaults.ppt?.templateId) {
-                         const predTemplate = availableTemplates.find(t => t.id === defaults.ppt.templateId);
-                         setSelectedPredefinedTemplate(predTemplate || availableTemplates[0]);
-                    } else {
-                        setSelectedPredefinedTemplate(availableTemplates[0]);
-                    }
-                } else {
-                    setSelectedPredefinedTemplate(availableTemplates[0]);
-                }
             }
-            // customLogoFile would need to be re-selected by user if they want to change it in edit mode
+            
             setShowModal(true);
-             // Clear editMode from location state to prevent re-triggering
             navigate(location.pathname, { replace: true, state: {} });
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [location.state, navigate, availableTemplates]); // availableTemplates added as it's used in fallback
+    }, [location.state, navigate, loadUserSettings]);
 
     useEffect(() => {
         if (successMessage) {
@@ -196,7 +222,7 @@ const GeneratePPT = () => {
 
     useEffect(() => {
         if (errorMessage) {
-            const timer = setTimeout(() => setErrorMessage(''), 5000); // Longer for errors
+            const timer = setTimeout(() => setErrorMessage(''), 5000);
             return () => clearTimeout(timer);
         }
     }, [errorMessage]);
@@ -206,72 +232,6 @@ const GeneratePPT = () => {
         setShowSummaryDisplay(false);
         setShowGeneratePPTFromSummaryButton(false);
     };
-    
-    const resetPptOptionsToDefaults = () => {
-        const savedSettingsString = localStorage.getItem('appSettings');
-        let pptDefaults = { // Hardcoded fallbacks
-            includeDate: false,
-            includePageNumber: false,
-            footerText: '',
-            logoPosition: 'top_left',
-            defaultLogo: null,
-            customTemplate: null,
-            templateId: availableTemplates.length > 0 ? availableTemplates[0].id : 'Temp.pptx',
-        };
-
-        if (savedSettingsString) {
-            try {
-                const parsed = JSON.parse(savedSettingsString);
-                if (parsed.ppt) {
-                    pptDefaults = { ...pptDefaults, ...parsed.ppt };
-                }
-            } catch (e) { console.error("Couldn't parse settings for PPT reset", e); }
-        }
-        
-        setIncludeDateTime(pptDefaults.includeDate);
-        setUpdateDateTimeAutomatically(true); // Default behavior for date
-        setFixedDateTime(getCurrentDateInputFormat());
-        setIncludeSlideNumber(pptDefaults.includePageNumber);
-        setFooterTextHF(pptDefaults.footerText);
-        setDontShowOnTitleSlide(true); // Common default
-        setPptLogoPosition(pptDefaults.logoPosition);
-        setDefaultPptLogoNameFromSettings(pptDefaults.defaultLogo);
-        setDefaultPptCustomTemplateNameFromSettings(pptDefaults.customTemplate);
-
-
-        const predefinedTemplate = availableTemplates.find(t => t.id === pptDefaults.templateId);
-        setSelectedPredefinedTemplate(predefinedTemplate || (availableTemplates.length > 0 ? availableTemplates[0] : null));
-        
-        setCustomTemplateFile(null); // Clear any user-uploaded template for this session
-        if (customTemplateInputRef.current) customTemplateInputRef.current.value = null;
-        setCustomLogoFile(null); // Clear any user-uploaded logo for this session
-        if (customLogoInputRef.current) customLogoInputRef.current.value = null;
-    };
-
-    const resetSummaryDownloadOptionsToDefaults = () => {
-         const savedSettingsString = localStorage.getItem('appSettings');
-         let summaryDefaults = { // Hardcoded fallbacks
-            footerText: '',
-            includePageNumber: false,
-            headerText: '',
-            headerPosition: 'left',
-         };
-         if (savedSettingsString) {
-            try {
-                const parsed = JSON.parse(savedSettingsString);
-                if (parsed.summary) {
-                    summaryDefaults = { ...summaryDefaults, ...parsed.summary };
-                }
-            } catch(e) { console.error("Couldn't parse settings for Summary reset", e); }
-         }
-        setSummaryDownloadOptions({
-            footerText: summaryDefaults.footerText,
-            includePageNumber: summaryDefaults.includePageNumber,
-            headerText: summaryDefaults.headerText,
-            headerPosition: summaryDefaults.headerPosition,
-        });
-    };
-
 
     const resetAllStates = () => {
         setUploadedFiles([]);
@@ -293,8 +253,7 @@ const GeneratePPT = () => {
         setLoadingHint(false);
         setSummaryContentStyle('paragraphs');
         
-        resetPptOptionsToDefaults(); // Apply defaults for PPT options
-        resetSummaryDownloadOptionsToDefaults(); // Apply defaults for Summary DOCX options
+        loadUserSettings(); // This will reset both PPT and Summary options to user's saved defaults.
         setShowTemplateChoiceModal(false); 
         setShowSummaryDownloadOptionsModal(false);
 
@@ -316,13 +275,12 @@ const GeneratePPT = () => {
         setNumParagraphs(3); 
         setSummaryContentStyle('paragraphs');
         
-        resetPptOptionsToDefaults(); // Load defaults when modal opens
-        resetSummaryDownloadOptionsToDefaults(); // Load defaults for summary options
-
+        loadUserSettings(); // Load user defaults when modal opens.
+        
         clearSummaryDisplay();
         setErrorMessage('');
         setSuccessMessage('');
-        // Suggest title from filename, or leave blank for text/URL for user to fill
+        
         const suggestedTitle = (inputMeta.name && inputMeta.name !== "Pasted Text" && !inputMeta.name.startsWith("URL:")) 
             ? inputMeta.name.split('.').slice(0, -1).join('.') || inputMeta.name 
             : "";
@@ -348,12 +306,12 @@ const GeneratePPT = () => {
         }
         const textMeta = { name: "Pasted Text", content: pastedText, type: 'text' };
         processAndShowModal(textMeta);
-        setShowPasteTextArea(false); // Close the paste text area
+        setShowPasteTextArea(false);
     };
 
     const handleFileUploadClick = () => {
-        resetAllStates(); // Reset before new upload flow
-        if (fileInputRef.current) fileInputRef.current.value = null; // Clear file input
+        resetAllStates();
+        if (fileInputRef.current) fileInputRef.current.value = null;
         fileInputRef.current.click();
     };
 
@@ -372,7 +330,7 @@ const GeneratePPT = () => {
         if (file) {
             if (file.name.endsWith('.potx') || file.name.endsWith('.pptx')) {
                 setCustomTemplateFile(file);
-                setSelectedPredefinedTemplate(null); // Deselect predefined if custom is chosen
+                setSelectedPredefinedTemplate(null); 
                 setErrorMessage('');
             } else {
                 setErrorMessage('Invalid template file. Please select a .potx or .pptx file.');
@@ -380,15 +338,11 @@ const GeneratePPT = () => {
                 if (customTemplateInputRef.current) {
                     customTemplateInputRef.current.value = null;
                 }
-                 // Fallback to default predefined template if invalid custom file
-                const defaultTemplateFromSettings = availableTemplates.find(t => t.id === defaultPptCustomTemplateNameFromSettings) || availableTemplates[0];
-                setSelectedPredefinedTemplate(defaultTemplateFromSettings);
+                loadUserSettings(); // Revert to default if invalid file is selected
             }
         } else {
              setCustomTemplateFile(null); 
-             // If file is deselected, re-select the default predefined template
-             const defaultTemplateFromSettings = availableTemplates.find(t => t.id === defaultPptCustomTemplateNameFromSettings) || availableTemplates[0];
-             setSelectedPredefinedTemplate(defaultTemplateFromSettings);
+             loadUserSettings(); // Revert to default if file is deselected
         }
     };
 
@@ -407,7 +361,7 @@ const GeneratePPT = () => {
                 }
             }
         } else {
-            setCustomLogoFile(null); // Clear if no file is selected
+            setCustomLogoFile(null);
         }
     };
 
@@ -417,7 +371,7 @@ const GeneratePPT = () => {
             return;
         }
         if (!currentSummaryTitle.trim()) {
-            setErrorMessage('Please enter a Title for the output.'); // Prompt for title for URL too
+            setErrorMessage('Please enter a Title for the output.');
             return;
         }
         const urlMeta = { name: `URL: ${urlInput.substring(0, 50)}...`, url: urlInput, type: 'url' };
@@ -456,7 +410,7 @@ const GeneratePPT = () => {
         }
 
         try {
-            const response = await fetch("http://localhost:8000/estimate-content-metrics/", {
+            const response = await fetch(`${API_BASE_URL}/estimate-content-metrics/`, {
                 method: 'POST',
                 headers: headers, 
                 body: formData,
@@ -495,7 +449,7 @@ const GeneratePPT = () => {
     };
     
     useEffect(() => {
-        if (actionChoice === 'ppt' && originalInputDetails && showModal && !location.state?.editMode && !aiSuggestedSlides) { // Fetch only if not already fetched
+        if (actionChoice === 'ppt' && originalInputDetails && showModal && !location.state?.editMode && !aiSuggestedSlides) {
             const token = localStorage.getItem('authToken');
             if (token) { 
                 fetchContentMetrics();
@@ -555,7 +509,7 @@ const GeneratePPT = () => {
         if (actionChoice === "ppt") {
             formData.append("include_date_time", includeDateTime);
             formData.append("update_date_time_auto", updateDateTimeAutomatically);
-            if (!updateDateTimeAutomatically) { // Only send fixed_date_time if it's selected
+            if (!updateDateTimeAutomatically) {
                  formData.append("fixed_date_time", fixedDateTime || getCurrentDateInputFormat());
             }
             formData.append("include_slide_number", includeSlideNumber);
@@ -567,26 +521,21 @@ const GeneratePPT = () => {
                 formData.append("custom_template_file", customTemplateFile, customTemplateFile.name);
             } else if (selectedPredefinedTemplate && selectedPredefinedTemplate.id) {
                 formData.append("selected_template_name", selectedPredefinedTemplate.id);
-            } else if (defaultPptCustomTemplateNameFromSettings) { // Use default custom template from settings if no other choice
-                formData.append("default_custom_template_name", defaultPptCustomTemplateNameFromSettings);
             }
-
 
             if (customLogoFile) { 
                 formData.append("custom_logo_file", customLogoFile, customLogoFile.name);
-            } else if (defaultPptLogoNameFromSettings) { // If no new logo uploaded, send default from settings
+            } else if (defaultPptLogoNameFromSettings) {
                 formData.append("default_logo_filename", defaultPptLogoNameFromSettings);
             }
         } else if (actionChoice === "summary") {
             formData.append("summary_style", summaryContentStyle);
         }
 
-        const apiUrl = "http://localhost:8000/generate-ppt/"; 
+        const apiUrl = `${API_BASE_URL}/generate-ppt/`; 
 
         try {
-            const headers = {
-                'Authorization': `Bearer ${token}`,
-            };
+            const headers = { 'Authorization': `Bearer ${token}` };
             const response = await fetch(apiUrl, { method: 'POST', headers: headers, body: formData });
             
             if (response.status === 401) {
@@ -613,21 +562,18 @@ const GeneratePPT = () => {
                             pptx_filename: responseData.pptx_filename,
                             total_slides: responseData.total_slides,
                             topic: currentSummaryTitle,
-                            originalInputDetails, // Keep this to allow re-editing or re-summarizing
-                            // Pass all relevant PPT options for potential edit mode in preview
+                            originalInputDetails,
                             actionChoice, numParagraphs, includeDateTime, updateDateTimeAutomatically, fixedDateTime, 
                             includeSlideNumber, footerTextHF, dontShowOnTitleSlide, pptLogoPosition,
-                            selectedPredefinedTemplate, // Pass the object
-                            // customTemplateFile?.name, // Name of custom template if used (File object itself cannot be passed in state)
-                            // customLogoFile?.name, // Name of custom logo if used
-                            defaultPptLogoNameFromSettings, // Pass this along
+                            selectedPredefinedTemplate,
+                            defaultPptLogoNameFromSettings,
                             defaultPptCustomTemplateNameFromSettings,
                         } 
                     });
                 } else {
-                     if (responseData.pptx_download_url) { // PPT generated but no preview
+                     if (responseData.pptx_download_url) {
                         setErrorMessage(responseData.message || 'PPT generated, but preview is unavailable. Attempting download.');
-                        const downloadUrl = `http://localhost:8000${responseData.pptx_download_url}`;
+                        const downloadUrl = `${API_BASE_URL}${responseData.pptx_download_url}`;
                         const link = document.createElement('a');
                         link.href = downloadUrl;
                         link.setAttribute('download', responseData.pptx_filename || `${currentSummaryTitle}.pptx`);
@@ -635,7 +581,7 @@ const GeneratePPT = () => {
                         link.click();
                         link.parentNode.removeChild(link);
                         setSuccessMessage('PPT downloaded as preview was unavailable.');
-                        setShowModal(false); // Close modal after download
+                        setShowModal(false);
                     } else {
                         throw new Error(responseData.error || responseData.detail || 'Server did not return valid data for PPT preview or download.');
                     }
@@ -650,14 +596,14 @@ const GeneratePPT = () => {
                 setShowSummaryDisplay(true);
                 setSuccessMessage(responseData.message || "Summary generated successfully!");
                 setShowGeneratePPTFromSummaryButton(true);
-                setShowModal(false); // Close modal after summary generation
+                setShowModal(false);
             }
         } catch (err) {
             console.error("Upload/Processing error:", err);
-            if (err.message !== 'User not authenticated') { // Avoid double message for auth
+            if (err.message !== 'User not authenticated') {
                 setErrorMessage(err.message || "An unexpected error occurred. Please try again.");
             }
-            clearSummaryDisplay(); // Clear any partial display on error
+            clearSummaryDisplay();
         } finally {
             setLoading(false);
         }
@@ -674,12 +620,10 @@ const GeneratePPT = () => {
             return;
         }
         setActionChoice("ppt"); 
-        resetPptOptionsToDefaults(); // Load defaults for PPT options again when switching to PPT mode
-        // No need to reset summaryDownloadOptions here as this modal is for PPT
-        setShowModal(true); // Show the main generation modal configured for PPT
-        setShowSummaryDisplay(false); // Hide summary display
-        setShowGeneratePPTFromSummaryButton(false); // Hide button
-        // Fetch content metrics if not already available for PPT mode
+        loadUserSettings(); // Reload user defaults for the PPT options modal
+        setShowModal(true);
+        setShowSummaryDisplay(false);
+        setShowGeneratePPTFromSummaryButton(false);
         if (!aiSuggestedSlides) fetchContentMetrics();
     };
 
@@ -688,11 +632,13 @@ const GeneratePPT = () => {
             setErrorMessage("No summary content available to download.");
             return;
         }
-        resetSummaryDownloadOptionsToDefaults(); // Load defaults into the DOCX options modal
+        loadUserSettings(); // This ensures the DOCX options are also up-to-date with user settings
         setShowSummaryDownloadOptionsModal(true);
     };
 
     const handleConfirmSummaryDownload = async () => {
+        // NOTE: The requestBody now includes options fetched from settings,
+        // which are held in the 'summaryDownloadOptions' state.
         const requestBody = {
             summary_output: {
                 title: summaryOutput.title,
@@ -700,7 +646,9 @@ const GeneratePPT = () => {
                 summaryText: summaryOutput.summaryText,
                 conclusion: summaryOutput.conclusion,
             },
-            options: summaryDownloadOptions, // This state holds the user's choices for DOCX
+            // The backend now gets options from the authenticated user's settings,
+            // so sending them here is not strictly necessary but doesn't hurt.
+            // options: summaryDownloadOptions, 
         };
     
         setLoading(true); 
@@ -715,7 +663,7 @@ const GeneratePPT = () => {
         }
     
         try {
-            const response = await fetch("http://localhost:8000/generate-summary-docx/", {
+            const response = await fetch(`${API_BASE_URL}/generate-summary-docx/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -762,7 +710,7 @@ const GeneratePPT = () => {
             setErrorMessage(error.message || "An error occurred while downloading the summary.");
         } finally {
             setLoading(false);
-            setShowSummaryDownloadOptionsModal(false); // Close modal
+            setShowSummaryDownloadOptionsModal(false);
         }
     };
 
@@ -781,7 +729,7 @@ const GeneratePPT = () => {
     useEffect(() => {
         const minVal = numParagraphsMinVal;
         const currentOverallMax = isPptModeActive ? MAX_CONTENT_SLIDES_PPT : MAX_CONTENT_SLIDES_SUMMARY;
-        let correctedNumParagraphs = Number(numParagraphs); // Ensure it's a number
+        let correctedNumParagraphs = Number(numParagraphs);
 
         if (isNaN(correctedNumParagraphs) || correctedNumParagraphs < minVal) {
             correctedNumParagraphs = minVal;
@@ -793,7 +741,7 @@ const GeneratePPT = () => {
         if (numParagraphs !== correctedNumParagraphs) {
             setNumParagraphs(correctedNumParagraphs);
         }
-    }, [numParagraphs, isPptModeActive, numParagraphsMinVal]);
+    }, [numParagraphs, isPptModeActive]);
 
 
     let numParagraphsLabelText = isPptModeActive
@@ -804,18 +752,17 @@ const GeneratePPT = () => {
     if (isPptModeActive) {
         if (loadingHint) {
             numParagraphsHintText = " (Estimating based on input...)";
-        } else if (suggestedSectionsHint) { // Display the full hint from backend
+        } else if (suggestedSectionsHint) {
              numParagraphsHintText = ` (${suggestedSectionsHint})`;
-        } else { // Generic hint if AI hint not available
+        } else {
             const minTotalInInput = numParagraphsMinVal + FIXED_SLIDES_COUNT;
             const maxTotalInInput = MAX_CONTENT_SLIDES_PPT + FIXED_SLIDES_COUNT;
             numParagraphsHintText = ` (Total slides: ${numParagraphsMinVal}-${MAX_CONTENT_SLIDES_PPT} content + ${FIXED_SLIDES_COUNT} standard = ${minTotalInInput}-${maxTotalInInput} approx.)`;
         }
-    } else { // Summary mode hint
+    } else {
          numParagraphsHintText = ` (Min: ${numParagraphsMinVal}, Max: ${MAX_CONTENT_SLIDES_SUMMARY} detail)`;
     }
     
-    // Calculate displayed value for "total slides" input field
     const totalSlidesDisplayValue = isPptModeActive ? (Number(numParagraphs) || 0) + FIXED_SLIDES_COUNT : numParagraphs;
 
     const handleTotalSlidesInputChange = (e) => {
@@ -826,12 +773,11 @@ const GeneratePPT = () => {
         if (isPptModeActive) {
             newContentSlidesCount = rawValue - FIXED_SLIDES_COUNT;
             newContentSlidesCount = Math.max(numParagraphsMinVal, Math.min(newContentSlidesCount, MAX_CONTENT_SLIDES_PPT));
-        } else { // Summary mode
+        } else {
             newContentSlidesCount = Math.max(numParagraphsMinVal, Math.min(rawValue, MAX_CONTENT_SLIDES_SUMMARY));
         }
         setNumParagraphs(newContentSlidesCount);
     };
-
 
     return (
         <div className={styles.container}>
@@ -987,7 +933,7 @@ const GeneratePPT = () => {
                                                     <input type="file" id="customLogoFileModal" ref={customLogoInputRef} accept="image/*" onChange={handleCustomLogoFileChange} className={styles.fileInputSmall} />
                                                     {customLogoFile ? <span className={styles.fileNameChip}>{customLogoFile.name}</span> : (defaultPptLogoNameFromSettings && <span className={styles.fileNameChip}>Default: {defaultPptLogoNameFromSettings}</span>) }
                                                 </div>
-                                                <div className={styles.customTemplateUpload}> {/* Changed to standard settingItem for consistency */}
+                                                <div className={styles.customTemplateUpload}>
                                                     <label htmlFor="pptLogoPos" className={styles.modalLabelInline}>Logo Position:</label>
                                                     <select id="pptLogoPos" value={pptLogoPosition} onChange={(e) => setPptLogoPosition(e.target.value)} className={styles.formSelectSmall}>
                                                         <option value="top_left">Top Left</option>
@@ -1064,7 +1010,7 @@ const GeneratePPT = () => {
                                             setShowTemplateChoiceModal(false);
                                         }}
                                     >
-                                        <div className={styles.templatePreviewPlaceholder} style={template.previewSrc ? { backgroundImage: `url(${template.previewSrc})` } : { /* inline style for placeholder */ }}>
+                                        <div className={styles.templatePreviewPlaceholder} style={template.previewSrc ? { backgroundImage: `url(${template.previewSrc})` } : {}}>
                                           {!template.previewSrc && template.name}
                                         </div>
                                         <div className={styles.templateName}>{template.name}</div>
