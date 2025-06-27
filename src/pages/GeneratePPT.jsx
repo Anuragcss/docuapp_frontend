@@ -54,7 +54,8 @@ const GeneratePPT = () => {
     const [customLogoFile, setCustomLogoFile] = useState(null);  // For user upload in modal
     const [showTemplateChoiceModal, setShowTemplateChoiceModal] = useState(false); 
     const [availableTemplates, setAvailableTemplates] = useState([ 
-        { id: 'Temp.pptx', name: 'Default Theme', previewSrc: '/assets/template_preview_placeholder.png' },
+        { id: 'none', name: 'None', previewSrc:null },
+        { id: 'Temp.pptx', name: 'Green Theme', previewSrc: '/assets/template_preview_placeholder.png' },
         { id: 'ModernDark.pptx', name: 'Modern Dark', previewSrc: '/assets/modern_dark_preview.png' },
         { id: 'CorporateBlue.pptx', name: 'Corporate Blue', previewSrc: '/assets/corporate_blue_preview.png' },
         { id: 'VibrantGradient.pptx', name: 'Vibrant Gradient', previewSrc: '/assets/vibrant_gradient_preview.png' },
@@ -66,7 +67,7 @@ const GeneratePPT = () => {
         { id: 'UniqueMatch.pptx', name: 'Unique Match', previewSrc: '/assets/unique_match_preview.png' },
     ]);
     const [selectedPredefinedTemplate, setSelectedPredefinedTemplate] = useState(
-        availableTemplates.length > 0 ? availableTemplates[0] : null
+        availableTemplates.length > 0 ? availableTemplates.find(t => t.id === 'none') : null
     ); 
 
     // State for DOCX options
@@ -110,7 +111,7 @@ const GeneratePPT = () => {
             setPptLogoPosition('top_left');
             setDefaultPptLogoNameFromSettings(null);
             setDefaultPptCustomTemplateNameFromSettings(null);
-            setSelectedPredefinedTemplate(availableTemplates.length > 0 ? availableTemplates[0] : null);
+            setSelectedPredefinedTemplate(availableTemplates.find(t => t.id === 'none') || null);
             setCustomTemplateFile(null);
             if (customTemplateInputRef.current) customTemplateInputRef.current.value = null;
             setCustomLogoFile(null);
@@ -120,6 +121,7 @@ const GeneratePPT = () => {
              setSummaryDownloadOptions({
                 footerText: '',
                 includePageNumber: false,
+                includeDate: false, // Make sure this is included
                 headerText: '',
                 headerPosition: 'left',
             });
@@ -157,13 +159,22 @@ const GeneratePPT = () => {
                 setDefaultPptLogoNameFromSettings(null);
             }
             
-            const predefinedTemplate = availableTemplates.find(t => t.id === settings.ppt_template_id);
-            setSelectedPredefinedTemplate(predefinedTemplate || (availableTemplates.length > 0 ? availableTemplates[0] : null));
+            // Logic to handle which template is the default (custom vs. predefined)
+            if (settings.default_ppt_custom_template) {
+                setDefaultPptCustomTemplateNameFromSettings(settings.default_ppt_custom_template);
+                const predefinedTemplate = availableTemplates.find(t => t.id === settings.ppt_template_id);
+                setSelectedPredefinedTemplate(predefinedTemplate || availableTemplates.find(t => t.id === 'none'));
+            } else {
+                setDefaultPptCustomTemplateNameFromSettings(null);
+                const predefinedTemplate = availableTemplates.find(t => t.id === settings.ppt_template_id);
+                setSelectedPredefinedTemplate(predefinedTemplate || availableTemplates.find(t => t.id === 'none'));
+            }
             
             // Apply fetched Summary settings for DOCX downloads
             setSummaryDownloadOptions({
                 footerText: settings.summary_footer_text ?? '',
                 includePageNumber: settings.summary_include_page_number ?? false,
+                includeDate: settings.summary_include_date ?? false,
                 headerText: settings.summary_header_text ?? '',
                 headerPosition: settings.summary_header_position ?? 'left',
             });
@@ -517,6 +528,12 @@ const GeneratePPT = () => {
             formData.append("dont_show_on_title", dontShowOnTitleSlide);
             formData.append("logo_position", pptLogoPosition); 
 
+            // MODIFICATION: Send user's default custom template filename if it's set 
+            // AND no one-time template has been uploaded for this generation.
+            if (defaultPptCustomTemplateNameFromSettings && !customTemplateFile) {
+                formData.append('default_custom_template_filename', defaultPptCustomTemplateNameFromSettings);
+            }
+
             if (customTemplateFile) {
                 formData.append("custom_template_file", customTemplateFile, customTemplateFile.name);
             } else if (selectedPredefinedTemplate && selectedPredefinedTemplate.id) {
@@ -525,9 +542,10 @@ const GeneratePPT = () => {
 
             if (customLogoFile) { 
                 formData.append("custom_logo_file", customLogoFile, customLogoFile.name);
-            } else if (defaultPptLogoNameFromSettings) {
-                formData.append("default_logo_filename", defaultPptLogoNameFromSettings);
             }
+            // Backend now gets default logos and templates from the authenticated user's record,
+            // so sending them explicitly for every request is not the primary mechanism,
+            // but we send the *identifier* of the chosen template.
         } else if (actionChoice === "summary") {
             formData.append("summary_style", summaryContentStyle);
         }
@@ -567,7 +585,7 @@ const GeneratePPT = () => {
                             includeSlideNumber, footerTextHF, dontShowOnTitleSlide, pptLogoPosition,
                             selectedPredefinedTemplate,
                             defaultPptLogoNameFromSettings,
-                            defaultPptCustomTemplateNameFromSettings,
+                            defaultPptCustomTemplateNameFromSettings, // Pass custom template name to preview
                         } 
                     });
                 } else {
@@ -637,8 +655,6 @@ const GeneratePPT = () => {
     };
 
     const handleConfirmSummaryDownload = async () => {
-        // NOTE: The requestBody now includes options fetched from settings,
-        // which are held in the 'summaryDownloadOptions' state.
         const requestBody = {
             summary_output: {
                 title: summaryOutput.title,
@@ -646,9 +662,6 @@ const GeneratePPT = () => {
                 summaryText: summaryOutput.summaryText,
                 conclusion: summaryOutput.conclusion,
             },
-            // The backend now gets options from the authenticated user's settings,
-            // so sending them here is not strictly necessary but doesn't hurt.
-            // options: summaryDownloadOptions, 
         };
     
         setLoading(true); 
@@ -919,8 +932,8 @@ const GeneratePPT = () => {
                                                 <div className={styles.selectedTemplateInfo}>
                                                     <strong>Current:</strong> {' '}
                                                     {customTemplateFile ? customTemplateFile.name 
-                                                      : (selectedPredefinedTemplate ? selectedPredefinedTemplate.name 
-                                                        : (defaultPptCustomTemplateNameFromSettings ? `Default Custom: ${defaultPptCustomTemplateNameFromSettings}` : 'Default Theme'))}
+                                                      : (defaultPptCustomTemplateNameFromSettings ? `Default: ${defaultPptCustomTemplateNameFromSettings}` 
+                                                        : (selectedPredefinedTemplate ? selectedPredefinedTemplate.name : 'Default Theme'))}
                                                 </div>
                                                 
                                                 <div className={styles.customTemplateUpload}>
@@ -1002,7 +1015,7 @@ const GeneratePPT = () => {
                                 {availableTemplates.map(template => (
                                     <div 
                                         key={template.id} 
-                                        className={`${styles.templateCard} ${selectedPredefinedTemplate?.id === template.id ? styles.selected : ''}`}
+                                        className={`${styles.templateCard} ${(selectedPredefinedTemplate?.id === template.id) ? styles.selected : ''}`}
                                         onClick={() => {
                                             setSelectedPredefinedTemplate(template);
                                             setCustomTemplateFile(null); 
@@ -1011,10 +1024,11 @@ const GeneratePPT = () => {
                                         }}
                                     >
                                         <div className={styles.templatePreviewPlaceholder} style={template.previewSrc ? { backgroundImage: `url(${template.previewSrc})` } : {}}>
-                                          {!template.previewSrc && template.name}
+                                          {(!template.previewSrc && template.id !== 'none') && template.name}
+                                          {template.id === 'none' && 'Use Custom or Default'}
                                         </div>
                                         <div className={styles.templateName}>{template.name}</div>
-                                        {selectedPredefinedTemplate?.id === template.id && (
+                                        {(selectedPredefinedTemplate?.id === template.id) && (
                                             <div className={styles.selectedTextMarker}>Selected</div>
                                         )}
                                     </div>

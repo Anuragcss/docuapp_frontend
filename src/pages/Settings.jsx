@@ -1,5 +1,5 @@
 // src/pages/Settings.jsx
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './Settings.module.css';
 import Sidebar from '../components/sidebar';
@@ -11,8 +11,12 @@ const API_BASE_URL = "http://127.0.0.1:8000";
 const Settings = () => {
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(true);
+    const [isTemplatePanelOpen, setIsTemplatePanelOpen] = useState(false);
+    
+    const customTemplateInputRef = useRef(null);
+
     const [settings, setSettings] = useState({
-        ppt_template_id: 'Temp.pptx',
+        ppt_template_id: 'none',
         ppt_include_date: false,
         ppt_include_page_number: false,
         ppt_footer_text: '',
@@ -25,17 +29,27 @@ const Settings = () => {
         summary_logo_position: 'top_left',
         summary_header_position: 'left',
         default_summary_logo_url: null,
+        default_ppt_custom_template: null,
     });
     
     const [filesToUpload, setFilesToUpload] = useState({
         ppt_logo: null,
         summary_logo: null,
+        ppt_template_file: null,
     });
     
-    const availableTemplates = [
-        { id: 'Temp.pptx', name: 'Default Theme' },
+    const availableTemplates = [ 
+        { id: 'none', name: 'None' },
+        { id: 'Temp.pptx', name: 'Green Theme' },
         { id: 'ModernDark.pptx', name: 'Modern Dark' },
         { id: 'CorporateBlue.pptx', name: 'Corporate Blue' },
+        { id: 'VibrantGradient.pptx', name: 'Vibrant Gradient' },
+        { id: 'MinimalistLight.pptx', name: 'Minimalist Light' },
+        { id: 'GeometricGreen.pptx', name: 'Geometric Green' },
+        { id: 'ProfessionalGray.pptx', name: 'Professional Gray' },
+        { id: 'SunnyOrange.pptx', name: 'Sunny Orange' },
+        { id: 'ElegantPurple.pptx', name: 'Elegant Purple' },
+        { id: 'UniqueMatch.pptx', name: 'Unique Match' },
     ];
     
     const fetchSettings = useCallback(async () => {
@@ -56,7 +70,7 @@ const Settings = () => {
                 throw new Error(errorData.detail);
             }
             const data = await response.json();
-            setSettings(data);
+            setSettings(prev => ({...prev, ...data}));
         } catch (error) {
             toast.error(`Failed to load settings: ${error.message}`);
         } finally {
@@ -74,12 +88,24 @@ const Settings = () => {
     
     const handleFileChange = (key, file) => {
         if (file) {
+            if (key === 'ppt_template_file') {
+                if (!file.name.endsWith('.pptx') && !file.name.endsWith('.potx')) {
+                    toast.error("Invalid template file. Please select a .pptx or .potx file.");
+                    if(customTemplateInputRef.current) customTemplateInputRef.current.value = null;
+                    return;
+                }
+                handleSettingChange('ppt_template_id', 'none');
+            }
+
             setFilesToUpload(prev => ({ ...prev, [key]: file }));
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setSettings(prev => ({ ...prev, [key === 'ppt_logo' ? 'default_ppt_logo_url' : 'default_summary_logo_url']: reader.result }));
-            };
-            reader.readAsDataURL(file);
+
+            if (key === 'ppt_logo' || key === 'summary_logo') {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    setSettings(prev => ({ ...prev, [key === 'ppt_logo' ? 'default_ppt_logo_url' : 'default_summary_logo_url']: reader.result }));
+                };
+                reader.readAsDataURL(file);
+            }
         }
     };
 
@@ -92,8 +118,12 @@ const Settings = () => {
 
         const formData = new FormData();
         Object.keys(settings).forEach(key => {
-            if (key !== 'default_ppt_logo_url' && key !== 'default_summary_logo_url') {
-                 formData.append(key, settings[key]);
+            if (key !== 'default_ppt_logo_url' && key !== 'default_summary_logo_url' && key !== 'default_ppt_custom_template') {
+                 if (key === 'ppt_template_id' && filesToUpload.ppt_template_file) {
+                     formData.append('ppt_template_id', 'none');
+                 } else {
+                     formData.append(key, settings[key]);
+                 }
             }
         });
 
@@ -102,6 +132,9 @@ const Settings = () => {
         }
         if (filesToUpload.summary_logo) {
             formData.append('summary_logo', filesToUpload.summary_logo);
+        }
+        if (filesToUpload.ppt_template_file) {
+            formData.append('ppt_template_file', filesToUpload.ppt_template_file);
         }
 
         const toastId = toast.loading("Saving settings...");
@@ -118,8 +151,10 @@ const Settings = () => {
             }
             
             toast.update(toastId, { render: "Settings saved successfully! ✅", type: "success", isLoading: false, autoClose: 3000 });
-            setSettings(data); 
-            setFilesToUpload({ ppt_logo: null, summary_logo: null });
+            setSettings(prev => ({ ...prev, ...data })); 
+            
+            setFilesToUpload({ ppt_logo: null, summary_logo: null, ppt_template_file: null });
+            if (customTemplateInputRef.current) customTemplateInputRef.current.value = null;
 
         } catch (error) {
             toast.update(toastId, { render: `Error: ${error.message}`, type: "error", isLoading: false, autoClose: 5000 });
@@ -129,32 +164,65 @@ const Settings = () => {
     const getLogoUrl = (urlPath) => {
         if (!urlPath) return null;
         if (urlPath.startsWith('data:')) return urlPath;
-        return `${API_BASE_URL}${urlPath}`;
+        const pathPrefix = urlPath.startsWith('/') ? '' : '/static-user-assets/';
+        return `${API_BASE_URL}${pathPrefix}${urlPath}`;
     };
 
+    const handleTemplateSelect = (templateId) => {
+        handleSettingChange('ppt_template_id', templateId);
+        if (templateId !== 'none') {
+            setFilesToUpload(prev => ({ ...prev, ppt_template_file: null }));
+            if (customTemplateInputRef.current) {
+                customTemplateInputRef.current.value = null;
+            }
+        }
+    };
+    
     if (isLoading) {
         return <div className={styles.loading}>Loading settings...</div>;
     }
+
+    const getTemplateDisplayName = () => {
+        if (settings.ppt_template_id === 'none' && settings.default_ppt_custom_template) {
+            return `Custom: ${settings.default_ppt_custom_template}`;
+        }
+        const predefined = availableTemplates.find(t => t.id === settings.ppt_template_id);
+        return predefined ? predefined.name : 'None';
+    };
+
 
     return (
         <div className={styles.settingsPage}>
             <Sidebar />
             <div className={styles.settingsWrapper}>
-                <h1>Application Settings</h1>
                 <p>Customize your default options for generating summaries and presentations.</p>
                 
                 <div className={styles.settingsGrid}>
-                    {/* PPT Settings Card */}
                     <div className={styles.settingsCard}>
                         <h2 className={styles.settingsCardTitle}>PPT Settings</h2>
+                        
                         <div className={styles.settingItem}>
                             <label>Default Theme</label>
-                            <select className={styles.formSelect} value={settings.ppt_template_id} onChange={(e) => handleSettingChange('ppt_template_id', e.target.value)}>
-                                {availableTemplates.map(template => (
-                                    <option key={template.id} value={template.id}>{template.name}</option>
-                                ))}
-                            </select>
+                            <div className={styles.templateChooser}>
+                                <button type="button" onClick={() => setIsTemplatePanelOpen(true)} className={styles.chooseTemplateButton}>
+                                    Choose Theme
+                                </button>
+                                <span className={styles.currentTemplateName}>
+                                    Current: {getTemplateDisplayName()}
+                                </span>
+                            </div>
                         </div>
+
+                        <div className={styles.settingItem}>
+                            <label>Default Custom Template (.pptx/.potx)</label>
+                            <input ref={customTemplateInputRef} type="file" accept=".pptx,.potx" onChange={(e) => handleFileChange('ppt_template_file', e.target.files[0])} className={styles.fileInput} />
+                            {filesToUpload.ppt_template_file ? (
+                                <div className={styles.fileName}>Staged: {filesToUpload.ppt_template_file.name}</div>
+                            ) : (
+                                settings.default_ppt_custom_template && <div className={styles.fileName}>Saved: {settings.default_ppt_custom_template}</div>
+                            )}
+                        </div>
+
                         <div className={styles.settingItem}>
                             <label>Default Logo</label>
                             <input type="file" accept="image/*" onChange={(e) => handleFileChange('ppt_logo', e.target.files[0])} className={styles.fileInput} />
@@ -181,7 +249,6 @@ const Settings = () => {
                         </div>
                     </div>
 
-                    {/* Summary Settings Card (DOCX) */}
                     <div className={styles.settingsCard}>
                         <h2 className={styles.settingsCardTitle}>Summary Settings (DOCX)</h2>
                         <div className={styles.settingItem}>
@@ -227,6 +294,33 @@ const Settings = () => {
                     <button onClick={handleSave} className={`${styles.actionButton} ${styles.saveButton}`}>Save All Settings</button>
                 </div>
             </div>
+
+            {isTemplatePanelOpen && (
+                 <div className={styles.panelOverlay} onClick={() => setIsTemplatePanelOpen(false)}></div>
+            )}
+            <div className={`${styles.templatePanel} ${isTemplatePanelOpen ? styles.open : ''}`}>
+                <h3 className={styles.templatePanelTitle}>Choose a Default Template</h3>
+                <ul className={styles.templateList}>
+                    {availableTemplates.map(template => (
+                        <li 
+                            key={template.id}
+                            className={`${styles.templateListItem} ${settings.ppt_template_id === template.id ? styles.selected : ''}`}
+                            onClick={() => handleTemplateSelect(template.id)}
+                        >
+                            {template.name}
+                        </li>
+                    ))}
+                </ul>
+                <div className={styles.templatePanelActions}>
+                     <span className={styles.selectedStatus}>
+                         Selected: {getTemplateDisplayName()}
+                     </span>
+                     <button className={styles.cancelButton} onClick={() => setIsTemplatePanelOpen(false)}>
+                         Close
+                     </button>
+                </div>
+            </div>
+            
             <ToastContainer position="bottom-right" autoClose={5000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
         </div>
     );
